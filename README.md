@@ -151,6 +151,9 @@ You should then configure the MySQL plugin:
     status.Table_open_cache_hits
     status.Table_open_cache_misses
     status.Table_open_cache_overflows
+    status.Threadpool_idle_threads
+    status.Threadpool_threads
+
 
 The following are determined programatically:
 

@@ -149,6 +149,8 @@ MYSQL_STATUS_VARS = {
 	'Table_open_cache_hits': 'counter',
 	'Table_open_cache_misses': 'counter',
 	'Table_open_cache_overflows': 'counter',
+	'Threadpool_idle_threads': 'gauge',
+	'Threadpool_threads': 'gauge',
 }
 
 MYSQL_VARS = [
