@@ -153,6 +153,20 @@ You should then configure the MySQL plugin:
     status.Table_open_cache_overflows
     status.Threadpool_idle_threads
     status.Threadpool_threads
+    status.Innodb_checkpoint_age
+    status.Innodb_data_pending_fsyncs
+    status.Innodb_data_read
+    status.Innodb_data_reads
+    status.Innodb_data_writes
+    status.Innodb_data_written
+    status.Innodb_deadlocks
+    status.Key_blocks_not_flushed
+    status.Key_blocks_unused
+    status.Key_blocks_used
+    status.Opened_files
+    status.Open_table_definitions
+    status.Opened_table_definitions
+    status.Uptime
 
 
 The following are determined programatically:

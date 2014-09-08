@@ -151,6 +151,20 @@ MYSQL_STATUS_VARS = {
 	'Table_open_cache_overflows': 'counter',
 	'Threadpool_idle_threads': 'gauge',
 	'Threadpool_threads': 'gauge',
+	'Innodb_checkpoint_age': 'gauge',
+	'Innodb_data_pending_fsyncs': 'gauge',
+	'Innodb_data_read': 'counter',
+	'Innodb_data_reads': 'counter',
+	'Innodb_data_writes': 'counter',
+	'Innodb_data_written': 'counter',
+	'Innodb_deadlocks': 'counter',
+	'Key_blocks_not_flushed': 'gauge',
+	'Key_blocks_unused': 'gauge',
+	'Key_blocks_used': 'gauge',
+	'Opened_files': 'counter',
+	'Open_table_definitions': 'gauge',
+	'Opened_table_definitions': 'counter',
+	'Uptime': 'gauge',
 }
 
 MYSQL_VARS = [
