@@ -148,6 +148,9 @@ You should then configure the MySQL plugin:
     status.Innodb_mem_adaptive_hash
     status.Innodb_mem_dictionary
     status.Innodb_mem_total
+    status.Table_open_cache_hits
+    status.Table_open_cache_misses
+    status.Table_open_cache_overflows
 
 The following are determined programatically:
 

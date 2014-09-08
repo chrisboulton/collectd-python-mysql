@@ -146,6 +146,9 @@ MYSQL_STATUS_VARS = {
 	'Innodb_mem_adaptive_hash': 'gauge',
 	'Innodb_mem_dictionary': 'gauge',
 	'Innodb_mem_total': 'gauge',
+	'Table_open_cache_hits': 'counter',
+	'Table_open_cache_misses': 'counter',
+	'Table_open_cache_overflows': 'counter',
 }
 
 MYSQL_VARS = [
