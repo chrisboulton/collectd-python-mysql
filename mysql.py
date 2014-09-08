@@ -389,7 +389,7 @@ def fetch_mysql_response_times(conn):
 	except MySQLdb.OperationalError:
 		return {}
 
-	for i in range(1, 13):
+	for i in range(1, 14):
 		row = result.fetchone()
 
 		# fill in missing rows with zeros
