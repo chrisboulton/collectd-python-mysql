@@ -53,22 +53,6 @@ You should then configure the MySQL plugin:
     status.Created_tmp_disk_tables
     status.Created_tmp_files
     status.Created_tmp_tables
-    status.Handler_commit
-    status.Handler_delete
-    status.Handler_discover
-    status.Handler_prepare
-    status.Handler_read_first
-    status.Handler_read_key
-    status.Handler_read_last
-    status.Handler_read_next
-    status.Handler_read_prev
-    status.Handler_read_rnd
-    status.Handler_read_rnd_next
-    status.Handler_rollback
-    status.Handler_savepoint
-    status.Handler_savepoint_rollback
-    status.Handler_update
-    status.Handler_write
     status.Innodb_buffer_pool_pages_data
     status.Innodb_buffer_pool_pages_dirty
     status.Innodb_buffer_pool_pages_free
