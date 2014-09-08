@@ -42,52 +42,16 @@ You should then configure the MySQL plugin:
 ### MySQL Status
 
 	status.Com_*
-    status.Key_read_requests
-    status.Key_reads
-    status.Key_write_requests
-    status.Key_writes
-    status.Table_locks_waited
-    status.Table_locks_immediate
-    status.Slow_queries
-    status.Open_files
-    status.Open_tables
-    status.Opened_tables
     status.Aborted_clients
     status.Aborted_connects
-    status.Max_used_connections
-    status.Slow_launch_threads
-    status.Threads_cached
-    status.Threads_connected
-    status.Threads_created
-    status.Threads_running
-    status.Connections
-    status.Slave_retried_transactions
-    status.Slave_open_temp_tables
-    status.Qcache_free_blocks
-    status.Qcache_free_memory
-    status.Qcache_hits
-    status.Qcache_inserts
-    status.Qcache_lowmem_prunes
-    status.Qcache_not_cached
-    status.Qcache_queries_in_cache
-    status.Qcache_total_blocks
-    status.Questions
-    status.Select_full_join
-    status.Select_full_range_join
-    status.Select_range
-    status.Select_range_check
-    status.Select_scan
-    status.Sort_merge_passes
-    status.Sort_range
-    status.Sort_rows
-    status.Sort_scan
-    status.Created_tmp_tables
-    status.Created_tmp_disk_tables
-    status.Created_tmp_files
-    status.Bytes_sent
-    status.Bytes_received
     status.Binlog_cache_disk_use
     status.Binlog_cache_use
+    status.Bytes_received
+    status.Bytes_sent
+    status.Connections
+    status.Created_tmp_disk_tables
+    status.Created_tmp_files
+    status.Created_tmp_tables
     status.Handler_commit
     status.Handler_delete
     status.Handler_discover
@@ -104,6 +68,43 @@ You should then configure the MySQL plugin:
     status.Handler_savepoint_rollback
     status.Handler_update
     status.Handler_write
+    status.Innodb_buffer_pool_pages_data
+    status.Innodb_buffer_pool_pages_dirty
+    status.Innodb_buffer_pool_pages_free
+    status.Innodb_buffer_pool_pages_total
+    status.Innodb_buffer_pool_read_requests
+    status.Innodb_buffer_pool_reads
+    status.Innodb_checkpoint_age
+    status.Innodb_data_fsyncs
+    status.Innodb_data_pending_fsyncs
+    status.Innodb_data_pending_reads
+    status.Innodb_data_pending_writes
+    status.Innodb_data_read
+    status.Innodb_data_reads
+    status.Innodb_data_writes
+    status.Innodb_data_written
+    status.Innodb_deadlocks
+    status.Innodb_history_list_length
+    status.Innodb_ibuf_free_list
+    status.Innodb_ibuf_merged_delete_marks
+    status.Innodb_ibuf_merged_deletes
+    status.Innodb_ibuf_merged_inserts
+    status.Innodb_ibuf_merges
+    status.Innodb_ibuf_segment_size
+    status.Innodb_ibuf_size
+    status.Innodb_lsn_current
+    status.Innodb_lsn_flushed
+    status.Innodb_max_trx_id
+    status.Innodb_mem_adaptive_hash
+    status.Innodb_mem_dictionary
+    status.Innodb_mem_total
+    status.Innodb_mutex_os_waits
+    status.Innodb_mutex_spin_rounds
+    status.Innodb_mutex_spin_waits
+    status.Innodb_os_log_pending_fsyncs
+    status.Innodb_pages_created
+    status.Innodb_pages_read
+    status.Innodb_pages_written
     status.Innodb_row_lock_time
     status.Innodb_row_lock_time_avg
     status.Innodb_row_lock_time_max
@@ -112,60 +113,59 @@ You should then configure the MySQL plugin:
     status.Innodb_rows_inserted
     status.Innodb_rows_read
     status.Innodb_rows_updated
-    status.Innodb_pages_created
-    status.Innodb_pages_read
-    status.Innodb_pages_written
-    status.Innodb_buffer_pool_pages_data
-    status.Innodb_buffer_pool_pages_dirty
-    status.Innodb_buffer_pool_pages_free
-    status.Innodb_buffer_pool_pages_total
-    status.Innodb_data_fsyncs
-    status.Innodb_data_pending_reads
-    status.Innodb_data_pending_writes
-    status.Innodb_os_log_pending_fsyncs
-    status.Innodb_buffer_pool_reads
-    status.Innodb_buffer_pool_read_requests
-    status.Innodb_max_trx_id
-    status.Innodb_history_list_length
-    status.Innodb_mutex_os_waits
-    status.Innodb_mutex_spin_rounds
-    status.Innodb_mutex_spin_waits
     status.Innodb_s_lock_os_waits
     status.Innodb_s_lock_spin_rounds
     status.Innodb_s_lock_spin_waits
     status.Innodb_x_lock_os_waits
     status.Innodb_x_lock_spin_rounds
     status.Innodb_x_lock_spin_waits
-    status.Innodb_ibuf_free_list
-    status.Innodb_ibuf_merged_deletes
-    status.Innodb_ibuf_merged_delete_marks
-    status.Innodb_ibuf_merged_inserts
-    status.Innodb_ibuf_merges
-    status.Innodb_ibuf_size
-    status.Innodb_ibuf_segment_size
-    status.Innodb_lsn_current
-    status.Innodb_lsn_flushed
-    status.Innodb_mem_adaptive_hash
-    status.Innodb_mem_dictionary
-    status.Innodb_mem_total
+    status.Key_blocks_not_flushed
+    status.Key_blocks_unused
+    status.Key_blocks_used
+    status.Key_read_requests
+    status.Key_reads
+    status.Key_write_requests
+    status.Key_writes
+    status.Max_used_connections
+    status.Open_files
+    status.Open_table_definitions
+    status.Open_tables
+    status.Opened_files
+    status.Opened_table_definitions
+    status.Opened_tables
+    status.Qcache_free_blocks
+    status.Qcache_free_memory
+    status.Qcache_hits
+    status.Qcache_inserts
+    status.Qcache_lowmem_prunes
+    status.Qcache_not_cached
+    status.Qcache_queries_in_cache
+    status.Qcache_total_blocks
+    status.Questions
+    status.Select_full_join
+    status.Select_full_range_join
+    status.Select_range
+    status.Select_range_check
+    status.Select_scan
+    status.Slave_open_temp_tables
+    status.Slave_retried_transactions
+    status.Slow_launch_threads
+    status.Slow_queries
+    status.Sort_merge_passes
+    status.Sort_range
+    status.Sort_rows
+    status.Sort_scan
+    status.Table_locks_immediate
+    status.Table_locks_waited
     status.Table_open_cache_hits
     status.Table_open_cache_misses
     status.Table_open_cache_overflows
     status.Threadpool_idle_threads
     status.Threadpool_threads
-    status.Innodb_checkpoint_age
-    status.Innodb_data_pending_fsyncs
-    status.Innodb_data_read
-    status.Innodb_data_reads
-    status.Innodb_data_writes
-    status.Innodb_data_written
-    status.Innodb_deadlocks
-    status.Key_blocks_not_flushed
-    status.Key_blocks_unused
-    status.Key_blocks_used
-    status.Opened_files
-    status.Open_table_definitions
-    status.Opened_table_definitions
+    status.Threads_cached
+    status.Threads_connected
+    status.Threads_created
+    status.Threads_running
     status.Uptime
 
 
@@ -179,26 +179,26 @@ The following are determined programatically:
 
 Collected from `SHOW VARIABLES`:
 
-    variables.innodb_open_files
-    variables.innodb_log_buffer_size
-    variables.open_files_limit
-    variables.table_cache
-    variables.max_connections
-    variables.thread_cache_size
-    variables.query_cache_size
     variables.binlog_stmt_cache_size
     variables.innodb_additional_mem_pool_size
     variables.innodb_buffer_pool_size
     variables.innodb_concurrency_tickets
     variables.innodb_io_capacity
+    variables.innodb_log_buffer_size
     variables.innodb_log_file_size
     variables.innodb_open_files
-    variables.query_cache_size
-    variables.query_cache_limit
-    variables.read_buffer_size
+    variables.innodb_open_files
     variables.join_buffer_size
+    variables.max_connections
+    variables.open_files_limit
+    variables.query_cache_limit
+    variables.query_cache_size
+    variables.query_cache_size
+    variables.read_buffer_size
+    variables.table_cache
     variables.table_definition_cache
     variables.table_open_cache
+    variables.thread_cache_size
     variables.thread_cache_size
     variables.thread_concurrency
     variables.tmp_table_size
@@ -214,6 +214,7 @@ Count of MySQL processes from `SHOW PROCESSLIST` grouped by state:
     state.init
     state.locked
     state.login
+    state.none
     state.preparing
     state.reading_from_net
     state.sending_data
@@ -221,37 +222,36 @@ Count of MySQL processes from `SHOW PROCESSLIST` grouped by state:
     state.statistics
     state.updating
     state.writing_to_net
-    state.none
     state.other - All other states
 
 ### InnoDB Status
 
 Collected by parsing the output of `SHOW ENGINE INNODB STATUS`:
 
-    innodb.read_views
+    innodb.active_transactions
+    innodb.current_transactions
     innodb.file_reads
+    innodb.file_system_memory
     innodb.file_writes
-    innodb.pending_ibuf_aio_reads
+    innodb.innodb_lock_structs
+    innodb.innodb_lock_wait_secs
+    innodb.innodb_locked_tables
+    innodb.innodb_sem_wait_time_ms
+    innodb.innodb_sem_waits
+    innodb.innodb_tables_in_use
+    innodb.lock_system_memory
+    innodb.locked_transactions
+    innodb.log_writes
+    innodb.page_hash_memory
     innodb.pending_aio_log_ios
     innodb.pending_buf_pool_flushes
-    innodb.log_writes
-    innodb.pending_log_writes
     innodb.pending_chkp_writes
-    innodb.page_hash_memory
-    innodb.file_system_memory
-    innodb.lock_system_memory
+    innodb.pending_ibuf_aio_reads
+    innodb.pending_log_writes
     innodb.queries_inside
     innodb.queries_queued
-    innodb.innodb_sem_waits
-    innodb.innodb_sem_wait_time_ms
-    innodb.innodb_tables_in_use
-    innodb.innodb_locked_tables
-    innodb.innodb_lock_wait_secs
-    innodb.current_transactions
-    innodb.active_transactions
-    innodb.innodb_lock_structs
-    innodb.locked_transactions
-    
+    innodb.read_views
+
 In addition, the following InnoDB status variables which would normally be collected by parsing `SHOW ENGINE INNODB STATUS` in Percona's Cacti monitoring plugin are collected from`SHOW GLOBAL STATUS`:
 
 	spin_waits
