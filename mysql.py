@@ -335,7 +335,7 @@ def fetch_mysql_slave_stats(conn):
 
 	status = {
 		'relay_log_space': slave_row['Relay_Log_Space'],
-		'slave_lag':       slave_row['Seconds_Behind_Master'],
+		'slave_lag':       slave_row['Seconds_Behind_Master'] if slave_row['Seconds_Behind_Master'] != None else 0,
 	}
 
 	if MYSQL_CONFIG['HeartbeatTable']:
@@ -346,7 +346,7 @@ def fetch_mysql_slave_stats(conn):
 		""" % (MYSQL_CONFIG['HeartbeatTable'], slave_row['Master_Server_Id'])
 		result = mysql_query(conn, query)
 		row    = result.fetchone()
-		if 'delay' in row:
+		if 'delay' in row and row['delay'] != None:
 			status['slave_lag'] = row['delay']
 
 	status['slave_running'] = 1 if slave_row['Slave_SQL_Running'] == 'Yes' else 0
