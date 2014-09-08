@@ -47,22 +47,6 @@ MYSQL_STATUS_VARS = {
 	'Created_tmp_disk_tables': 'counter',
 	'Created_tmp_files': 'counter',
 	'Created_tmp_tables': 'counter',
-	'Handler_commit': 'counter',
-	'Handler_delete': 'counter',
-	'Handler_discover': 'counter',
-	'Handler_prepare': 'counter',
-	'Handler_read_first': 'counter',
-	'Handler_read_key': 'counter',
-	'Handler_read_last': 'counter',
-	'Handler_read_next': 'counter',
-	'Handler_read_prev': 'counter',
-	'Handler_read_rnd': 'counter',
-	'Handler_read_rnd_next': 'counter',
-	'Handler_rollback': 'counter',
-	'Handler_savepoint': 'counter',
-	'Handler_savepoint_rollback': 'counter',
-	'Handler_update': 'counter',
-	'Handler_write': 'counter',
 	'Innodb_buffer_pool_pages_data': 'gauge',
 	'Innodb_buffer_pool_pages_dirty': 'gauge',
 	'Innodb_buffer_pool_pages_free': 'gauge',
@@ -500,9 +484,10 @@ def read_callback():
 
 	mysql_status = fetch_mysql_status(conn)
 	for key in mysql_status:
-		# collect anything beginning with Com_. these change regularly between
-		# mysql versions and this is easier than a fixed list
-		if key[:4] == 'Com_':
+		# collect anything beginning with Com_/Handler_ as these change
+		# regularly between  mysql versions and this is easier than a fixed
+		# list
+		if key.split('_', 2)[0] in ['Com', 'Handler']:
 			ds_type = 'counter'
 		elif key in MYSQL_STATUS_VARS:
 			ds_type = MYSQL_STATUS_VARS[key]

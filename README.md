@@ -41,7 +41,8 @@ You should then configure the MySQL plugin:
 
 ### MySQL Status
 
-	status.Com_*
+    status.Com_*
+    status.Handler_*
     status.Aborted_clients
     status.Aborted_connects
     status.Binlog_cache_disk_use
