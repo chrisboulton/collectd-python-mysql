@@ -408,16 +408,11 @@ def fetch_mysql_response_times(conn):
 	return response_times
 
 def fetch_innodb_stats(conn):
-	global MYSQL_INNODB_STATUS_MATCHES
+	global MYSQL_INNODB_STATUS_MATCHES, MYSQL_INNODB_STATUS_VARS
 	result = mysql_query(conn, 'SHOW ENGINE INNODB STATUS')
 	row    = result.fetchone()
 	status = row['Status']
-	stats = {
-		'current_transactions': 0,
-		'active_transactions':  0,
-		'innodb_lock_structs':  0,
-		'locked_transactions':  0,
-	}
+	stats  = dict.fromkeys(MYSQL_INNODB_STATUS_VARS.keys(), 0)
 
 	for line in status.split("\n"):
 		line = line.strip()
