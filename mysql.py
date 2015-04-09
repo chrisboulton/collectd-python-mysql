@@ -54,6 +54,7 @@ MYSQL_STATUS_VARS = {
 	'Innodb_buffer_pool_read_requests': 'counter',
 	'Innodb_buffer_pool_reads': 'counter',
 	'Innodb_checkpoint_age': 'gauge',
+	'Innodb_checkpoint_max_age': 'gauge',
 	'Innodb_data_fsyncs': 'counter',
 	'Innodb_data_pending_fsyncs': 'gauge',
 	'Innodb_data_pending_reads': 'gauge',
@@ -479,6 +480,8 @@ def read_callback():
 
 	mysql_status = fetch_mysql_status(conn)
 	for key in mysql_status:
+		if mysql_status[key] == '': mysql_status[key] = 0
+
 		# collect anything beginning with Com_/Handler_ as these change
 		# regularly between  mysql versions and this is easier than a fixed
 		# list
