@@ -34,6 +34,7 @@ MYSQL_CONFIG = {
 	'Password':       '',
 	'HeartbeatTable': '',
 	'Verbose':        False,
+	'Socket':         '/var/lib/mysql/mysql.sock'
 }
 
 MYSQL_STATUS_VARS = {
@@ -289,7 +290,8 @@ def get_mysql_conn():
 		host=MYSQL_CONFIG['Host'],
 		port=MYSQL_CONFIG['Port'],
 		user=MYSQL_CONFIG['User'],
-		passwd=MYSQL_CONFIG['Password']
+		passwd=MYSQL_CONFIG['Password'],
+		unix_socket=MYSQL_CONFIG['Socket']
 	)
 
 def mysql_query(conn, query):
