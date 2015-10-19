@@ -524,3 +524,5 @@ def read_callback():
 
 collectd.register_read(read_callback)
 collectd.register_config(configure_callback)
+
+# vim:noexpandtab ts=8 sw=8 sts=8
