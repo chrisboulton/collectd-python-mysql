@@ -35,7 +35,28 @@ You should then configure the MySQL plugin:
 			HeartbeatTable "percona.heartbeat" (if using pt-heartbeat to track slave lag)
 			Verbose false (default: false)
 		</Module>
-	</Python>
+	</Plugin>
+
+You can use a defaults file instead of the user and password, which will also allow
+use of a nonstandard socket location.   Then you can collect separate stats for
+multiple MySQL instances:
+
+	<Plugin python>
+		Import mysql
+		<Module mysql>
+			Host "localhost"
+			Port 3306
+			DefaultsFile "/root/.my.cnf-foo"
+			Instance "foo"
+		</Module>
+		<Module mysql>
+			Host "localhost"
+			Port 3306
+			DefaultsFile "/root/.my.cnf-bar"
+			Instance "bar"
+		</Module>
+	</Plugin>
+
 
 ## Metrics
 
