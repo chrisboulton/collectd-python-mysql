@@ -34,8 +34,7 @@ MYSQL_CONFIG = {
 	'Password':       '',
 	'HeartbeatTable': '',
 	'Verbose':        False,
-	'DefaultsFile':   '',
-	'Instance':       ''
+	'DefaultsFile':   ''
 }
 
 MYSQL_STATUS_VARS = {
@@ -465,9 +464,6 @@ def log_verbose(msg):
 def dispatch_value(prefix, key, value, type, type_instance=None):
 	if not type_instance:
 		type_instance = key
-
-	if MYSQL_CONFIG['Instance']:
-		prefix = prefix + '/' + MYSQL_CONFIG['Instance']
 
 	log_verbose('Sending value: %s/%s=%s' % (prefix, type_instance, value))
 	if not value:

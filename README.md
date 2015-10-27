@@ -38,8 +38,7 @@ You should then configure the MySQL plugin:
 	</Plugin>
 
 You can use a defaults file instead of the user and password, which will also allow
-use of a nonstandard socket location.   Then you can collect separate stats for
-multiple MySQL instances:
+use of a nonstandard socket location.
 
 	<Plugin python>
 		Import mysql
@@ -47,16 +46,10 @@ multiple MySQL instances:
 			Host "localhost"
 			Port 3306
 			DefaultsFile "/root/.my.cnf-foo"
-			Instance "foo"
-		</Module>
-		<Module mysql>
-			Host "localhost"
-			Port 3306
-			DefaultsFile "/root/.my.cnf-bar"
-			Instance "bar"
 		</Module>
 	</Plugin>
 
+The plugin is not configurable for multiple instances per host.
 
 ## Metrics
 
