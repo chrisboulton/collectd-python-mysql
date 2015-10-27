@@ -35,7 +35,21 @@ You should then configure the MySQL plugin:
 			HeartbeatTable "percona.heartbeat" (if using pt-heartbeat to track slave lag)
 			Verbose false (default: false)
 		</Module>
-	</Python>
+	</Plugin>
+
+You can use a defaults file instead of the user and password, which will also allow
+use of a nonstandard socket location.
+
+	<Plugin python>
+		Import mysql
+		<Module mysql>
+			Host "localhost"
+			Port 3306
+			DefaultsFile "/root/.my.cnf-foo"
+		</Module>
+	</Plugin>
+
+The plugin is not configurable for multiple instances per host.
 
 ## Metrics
 

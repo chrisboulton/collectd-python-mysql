@@ -34,6 +34,7 @@ MYSQL_CONFIG = {
 	'Password':       '',
 	'HeartbeatTable': '',
 	'Verbose':        False,
+	'DefaultsFile':   ''
 }
 
 MYSQL_STATUS_VARS = {
@@ -285,12 +286,20 @@ MYSQL_INNODB_STATUS_MATCHES = {
 }
 
 def get_mysql_conn():
-	return MySQLdb.connect(
-		host=MYSQL_CONFIG['Host'],
-		port=MYSQL_CONFIG['Port'],
-		user=MYSQL_CONFIG['User'],
-		passwd=MYSQL_CONFIG['Password']
-	)
+    # if defaults file is set, use it vice user and password
+	if MYSQL_CONFIG['DefaultsFile']:
+		return MySQLdb.connect(
+			host=MYSQL_CONFIG['Host'],
+			port=MYSQL_CONFIG['Port'],
+			read_default_file=MYSQL_CONFIG['DefaultsFile']
+		)
+	else:
+		return MySQLdb.connect(
+			host=MYSQL_CONFIG['Host'],
+			port=MYSQL_CONFIG['Port'],
+			user=MYSQL_CONFIG['User'],
+			passwd=MYSQL_CONFIG['Password']
+		)
 
 def mysql_query(conn, query):
 	cur = conn.cursor(MySQLdb.cursors.DictCursor)
