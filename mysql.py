@@ -195,6 +195,8 @@ MYSQL_PROCESS_STATES = {
 	'statistics': 0,
 	'updating': 0,
 	'writing_to_net': 0,
+	'creating_table': 0,
+	'opening_tables': 0,
 }
 
 MYSQL_INNODB_STATUS_VARS = {
