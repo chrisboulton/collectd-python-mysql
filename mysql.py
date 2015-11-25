@@ -447,6 +447,125 @@ def fetch_innodb_stats(conn):
 
 	return stats
 
+# Check if PENFORMANCE_SCHEMA is enabled
+def is_ps_enabled(conn):
+	result = mysql_query(conn, 'SHOW GLOBAL VARIABLES LIKE "performance_schema"')
+	row = result.fetchOne()
+	if row['performance_schema'] == 'ON':
+		return True
+	else
+		return False
+	
+def clean_string(digest):
+	clean_digest=digest
+	clean_digest=clean_digest.replace('`', '')
+	clean_digest=clean_digest.replace('?', '')
+	clean_digest=clean_digest.replace(' ', '_')
+	clean_digest=clean_digest.replace('(', '_')
+	clean_digest=clean_digest.replace(')', '_')
+	clean_digest=clean_digest.replace('.', '-')
+	return clean_digest	
+
+MYSQL_MAX_SLOW_QUERIES=20
+# http://www.markleith.co.uk/2011/04/18/monitoring-table-and-index-io-with-performance_schema/
+# http://www.markleith.co.uk/2012/07/04/mysql-performance-schema-statement-digests/
+#
+# 1) A high level overview of the statements like Query Analysis, sorted by those queries with the highest latency
+
+# 2) List all normalized statements that use temporary tables ordered by number of on disk temporary tables descending first, then by the number of memory tables.
+# 3) List all normalized statements that have done sorts, ordered by sort_merge_passes, sort_scans and sort_rows, all descending.
+# 4) List all normalized statements that use have done a full table scan ordered by the percentage of times a full scan was done, then by the number of times the statement executed
+# 5) List all normalized statements that have raised errors or warnings.
+
+# New
+
+# Connections per account (user/host)
+# 1) select * from accounts limit 100;
+
+# Connections per host
+# 1) select * from hosts limit 100;
+
+# Connections per user
+# 1) select * from users limit 100;
+
+# Operations (rows read / rows changed) per table
+# SELECT pst.object_schema AS table_schema, 
+#       pst.object_name AS table_name, 
+#       pst.count_read AS rows_read, 
+#       pst.count_write AS rows_changed,
+#       (pst.count_write * COUNT(psi.index_name)) AS rows_changed_x_indexes
+#  FROM performance_schema.table_io_waits_summary_by_table AS pst
+#  LEFT JOIN performance_schema.table_io_waits_summary_by_index_usage AS psi 
+#    ON pst.object_schema = psi.object_schema AND pst.object_name = psi.object_name
+#   AND psi.index_name IS NOT NULL
+# GROUP BY pst.object_schema, pst.object_name
+# ORDER BY pst.sum_timer_wait DESC;
+
+# reads per index
+# SELECT object_schema AS table_schema, object_name AS table_name, index_name, count_read AS rows_read from performance_schema.table_io_waits_summary_by_index_usage WHERE index_name IS NOT NULL ORDER BY sum_timer_wait DESC;
+
+# Indexes not being used
+#SELECT object_schema,
+#object_name,
+#index_name
+#FROM performance_schema.table_io_waits_summary_by_index_usage
+#WHERE index_name IS NOT NULL
+#AND count_star = 0
+#ORDER BY object_schema, object_name;
+
+# Queries that have raised errors/warnings
+#SELECT IF(LENGTH(DIGEST_TEXT) > 64, CONCAT(LEFT(DIGEST_TEXT, 30), ' ... ', RIGHT(DIGEST_TEXT, 30)), DIGEST_TEXT) AS query,
+#COUNT_STAR AS exec_count,
+#SUM_ERRORS AS errors,
+#(SUM_ERRORS / COUNT_STAR) * 100 as error_pct,
+#SUM_WARNINGS AS warnings,
+#(SUM_WARNINGS / COUNT_STAR) * 100 as warning_pct,
+#DIGEST AS digest
+#FROM performance_schema.events_statements_summary_by_digest
+#WHERE SUM_ERRORS > 0
+#OR SUM_WARNINGS > 0
+#ORDER BY SUM_ERRORS DESC, SUM_WARNINGS DESC;
+
+def fetch_slow_queries(conn):
+	slow_queries = {}
+	try:
+		# Get the slow queries
+		result = mysql_query(conn, """
+				SELECT IF(LENGTH(DIGEST_TEXT) > 64, CONCAT(LEFT(DIGEST_TEXT, 30), ' ... ', RIGHT(DIGEST_TEXT, 30)), DIGEST_TEXT) AS query,
+				IF(SUM_NO_GOOD_INDEX_USED > 0 OR SUM_NO_INDEX_USED > 0, '*', '') AS full_scan,
+				COUNT_STAR AS exec_count,
+				SUM_ERRORS AS err_count,
+				SUM_WARNINGS AS warn_count,
+				SEC_TO_TIME(SUM_TIMER_WAIT/1000000000000) AS exec_time_total,
+				SEC_TO_TIME(MAX_TIMER_WAIT/1000000000000) AS exec_time_max,
+				(AVG_TIMER_WAIT/1000000000) AS exec_time_avg_ms,
+				SUM_ROWS_SENT AS rows_sent,
+				ROUND(SUM_ROWS_SENT / COUNT_STAR) AS rows_sent_avg,
+				SUM_ROWS_EXAMINED AS rows_scanned
+				FROM performance_schema.events_statements_summary_by_digest
+				ORDER BY SUM_TIMER_WAIT DESC LIMIT 10;
+			""")
+		for row in result.fetchall():
+			# Clean the digest string
+			clean_digest=clean_digest(row['digest_text'])
+			slow_queries["full_scan_"+clean_digest] = row['full_scan']
+			slow_queries["exec_count_"clean_digest] = row['exec_count']
+			slow_queries["err_count_"+clean_digest] = row['err_count']
+			slow_queries["warn_count_"+clean_digest] = row['warn_count']
+			slow_queries["exec_time_total_"+clean_digest] = row['exec_time_total']
+			slow_queries["exec_time_max_"+clean_digest] = row['exec_time_max']
+			slow_queries["exec_time_avg_ms_"+clean_digest] = row['exec_time_avg_ms']
+			slow_queries["rows_sent_"+clean_digest] = row['rows_sent']
+			slow_queries["rows_sent_avg_"+clean_digest] = row['rows_sent_avg']
+			slow_queries["rows_scanned_"+clean_digest] = row['rows_scanned']
+
+	except MySQLdb.OperationalError:
+		return {}
+
+	return slow_queries
+
+
+
 def log_verbose(msg):
 	if MYSQL_CONFIG['Verbose'] == False:
 		return
@@ -521,6 +640,11 @@ def read_callback():
 	for key in MYSQL_INNODB_STATUS_VARS:
 		if key not in innodb_status: continue
 		dispatch_value('innodb', key, innodb_status[key], MYSQL_INNODB_STATUS_VARS[key])
+
+	slow_queries = fetch_slow_queries(conn)
+	for key in slow_queries:
+		dispatch_value('slow_query', key, slow_query[key], 'counter')
+
 
 collectd.register_read(read_callback)
 collectd.register_config(configure_callback)
