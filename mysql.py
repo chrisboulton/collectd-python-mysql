@@ -453,7 +453,7 @@ def is_ps_enabled(conn):
 	row = result.fetchOne()
 	if row['performance_schema'] == 'ON':
 		return True
-	else
+	else:
 		return False
 	
 def clean_string(digest):
@@ -463,7 +463,9 @@ def clean_string(digest):
 	clean_digest=clean_digest.replace(' ', '_')
 	clean_digest=clean_digest.replace('(', '_')
 	clean_digest=clean_digest.replace(')', '_')
+	clean_digest=clean_digest.replace('__', '_')
 	clean_digest=clean_digest.replace('.', '-')
+	clean_digest=clean_digest.replace(',_', ',')
 	return clean_digest	
 
 MYSQL_MAX_SLOW_QUERIES=20
@@ -532,12 +534,9 @@ def fetch_slow_queries(conn):
 		# Get the slow queries
 		result = mysql_query(conn, """
 				SELECT IF(LENGTH(DIGEST_TEXT) > 64, CONCAT(LEFT(DIGEST_TEXT, 30), ' ... ', RIGHT(DIGEST_TEXT, 30)), DIGEST_TEXT) AS query,
-				IF(SUM_NO_GOOD_INDEX_USED > 0 OR SUM_NO_INDEX_USED > 0, '*', '') AS full_scan,
 				COUNT_STAR AS exec_count,
-				SUM_ERRORS AS err_count,
-				SUM_WARNINGS AS warn_count,
-				SEC_TO_TIME(SUM_TIMER_WAIT/1000000000000) AS exec_time_total,
-				SEC_TO_TIME(MAX_TIMER_WAIT/1000000000000) AS exec_time_max,
+				(SUM_TIMER_WAIT/1000000000) AS exec_time_total_ms,
+				(MAX_TIMER_WAIT/1000000000) AS exec_time_max_ms,
 				(AVG_TIMER_WAIT/1000000000) AS exec_time_avg_ms,
 				SUM_ROWS_SENT AS rows_sent,
 				ROUND(SUM_ROWS_SENT / COUNT_STAR) AS rows_sent_avg,
@@ -547,13 +546,10 @@ def fetch_slow_queries(conn):
 			""")
 		for row in result.fetchall():
 			# Clean the digest string
-			clean_digest=clean_digest(row['digest_text'])
-			slow_queries["full_scan_"+clean_digest] = row['full_scan']
-			slow_queries["exec_count_"clean_digest] = row['exec_count']
-			slow_queries["err_count_"+clean_digest] = row['err_count']
-			slow_queries["warn_count_"+clean_digest] = row['warn_count']
-			slow_queries["exec_time_total_"+clean_digest] = row['exec_time_total']
-			slow_queries["exec_time_max_"+clean_digest] = row['exec_time_max']
+			clean_digest=clean_string(row['query'])
+			slow_queries["exec_count_"+clean_digest] = row['exec_count']
+			slow_queries["exec_time_total_"+clean_digest] = row['exec_time_total_ms']
+			slow_queries["exec_time_max_"+clean_digest] = row['exec_time_max_ms']
 			slow_queries["exec_time_avg_ms_"+clean_digest] = row['exec_time_avg_ms']
 			slow_queries["rows_sent_"+clean_digest] = row['rows_sent']
 			slow_queries["rows_sent_avg_"+clean_digest] = row['rows_sent_avg']
@@ -643,7 +639,7 @@ def read_callback():
 
 	slow_queries = fetch_slow_queries(conn)
 	for key in slow_queries:
-		dispatch_value('slow_query', key, slow_query[key], 'counter')
+		dispatch_value('slow_query', key, slow_queries[key], 'counter')
 
 
 collectd.register_read(read_callback)
