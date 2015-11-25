@@ -466,6 +466,7 @@ def clean_string(digest):
 	clean_digest=clean_digest.replace('__', '_')
 	clean_digest=clean_digest.replace('.', '-')
 	clean_digest=clean_digest.replace(',_', ',')
+	clean_digest=re.sub('_$', '',clean_digest)
 	return clean_digest	
 
 MYSQL_MAX_SLOW_QUERIES=20
