@@ -534,7 +534,7 @@ def fetch_slow_queries(conn):
 	try:
 		# Get the slow queries
 		result = mysql_query(conn, """
-				SELECT IF(LENGTH(DIGEST_TEXT) > 64, CONCAT(LEFT(DIGEST_TEXT, 30), ' ... ', RIGHT(DIGEST_TEXT, 30)), DIGEST_TEXT) AS query,
+				SELECT IF(LENGTH(DIGEST_TEXT) > 128, CONCAT(LEFT(DIGEST_TEXT, 60), ' ... ', RIGHT(DIGEST_TEXT, 60)), DIGEST_TEXT) AS query,
 				COUNT_STAR AS exec_count,
 				(SUM_TIMER_WAIT/1000000000) AS exec_time_total_ms,
 				(MAX_TIMER_WAIT/1000000000) AS exec_time_max_ms,
