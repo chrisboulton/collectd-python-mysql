@@ -529,6 +529,35 @@ MYSQL_MAX_SLOW_QUERIES=20
 #OR SUM_WARNINGS > 0
 #ORDER BY SUM_ERRORS DESC, SUM_WARNINGS DESC;
 
+# Queries that raised errors
+def fetch_warn_err_queries(conn):
+	queries = {}
+	try:
+		# Get the slow queries
+		result = mysql_query(conn, """
+				SELECT IF(LENGTH(DIGEST_TEXT) > 128, CONCAT(LEFT(DIGEST_TEXT, 60), ' ... ', RIGHT(DIGEST_TEXT, 60)), DIGEST_TEXT) AS query,
+				COUNT_STAR AS exec_count
+				SUM_ERRORS AS errors,
+				SUM_WARNINGS AS warnings,
+				FROM performance_schema.events_statements_summary_by_digest
+				WHERE SUM_ERRORS > 0
+				OR SUM_WARNINGS > 0
+				ORDER BY SUM_ERRORS DESC, SUM_WARNINGS DESC;
+				LIMIT 10;
+			""")
+		for row in result.fetchall():
+			# Clean the digest string
+			clean_digest=clean_string(row['query'])
+			queries["exec_count_"+clean_digest] = row['exec_count']
+			queries["errors_"+clean_digest] = row['exec_time_total_ms']
+			queries["warnings_"+clean_digest] = row['exec_time_max_ms']
+
+	except MySQLdb.OperationalError:
+		return {}
+
+	return queries
+
+# Slow queries, response time, rows scanned, rows returned 
 def fetch_slow_queries(conn):
 	slow_queries = {}
 	try:
@@ -641,6 +670,11 @@ def read_callback():
 	slow_queries = fetch_slow_queries(conn)
 	for key in slow_queries:
 		dispatch_value('slow_query', key, slow_queries[key], 'counter')
+
+	queries = fetch_warning_error_queries(conn)
+	for key in queries:
+		dispatch_value('warn_err_query', key, queries[key], 'counter')
+
 
 
 collectd.register_read(read_callback)
