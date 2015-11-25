@@ -536,7 +536,7 @@ def fetch_warning_error_queries(conn):
 		# Get the slow queries
 		result = mysql_query(conn, """
 				SELECT IF(LENGTH(DIGEST_TEXT) > 128, CONCAT(LEFT(DIGEST_TEXT, 60), ' ... ', RIGHT(DIGEST_TEXT, 60)), DIGEST_TEXT) AS query,
-				COUNT_STAR AS exec_count
+				COUNT_STAR AS exec_count,
 				SUM_ERRORS AS errors,
 				SUM_WARNINGS AS warnings,
 				FROM performance_schema.events_statements_summary_by_digest
