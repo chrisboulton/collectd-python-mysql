@@ -539,7 +539,7 @@ def fetch_slow_queries(conn):
 				(SUM_TIMER_WAIT/1000000000) AS exec_time_total_ms,
 				(MAX_TIMER_WAIT/1000000000) AS exec_time_max_ms,
 				(AVG_TIMER_WAIT/1000000000) AS exec_time_avg_ms,
-				SUM_ROWS_SENT AS rows_sent,
+				SUM_ROWS_SENT AS rows_sent_sum,
 				ROUND(SUM_ROWS_SENT / COUNT_STAR) AS rows_sent_avg,
 				SUM_ROWS_EXAMINED AS rows_scanned
 				FROM performance_schema.events_statements_summary_by_digest
@@ -552,7 +552,7 @@ def fetch_slow_queries(conn):
 			slow_queries["exec_time_total_"+clean_digest] = row['exec_time_total_ms']
 			slow_queries["exec_time_max_"+clean_digest] = row['exec_time_max_ms']
 			slow_queries["exec_time_avg_ms_"+clean_digest] = row['exec_time_avg_ms']
-			slow_queries["rows_sent_"+clean_digest] = row['rows_sent']
+			slow_queries["rows_sent_sum_"+clean_digest] = row['rows_sent_sum']
 			slow_queries["rows_sent_avg_"+clean_digest] = row['rows_sent_avg']
 			slow_queries["rows_scanned_"+clean_digest] = row['rows_scanned']
 
