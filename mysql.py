@@ -542,7 +542,7 @@ def fetch_warning_error_queries(conn):
 				FROM performance_schema.events_statements_summary_by_digest
 				WHERE SUM_ERRORS > 0
 				OR SUM_WARNINGS > 0
-				ORDER BY SUM_ERRORS DESC, SUM_WARNINGS DESC;
+				ORDER BY SUM_ERRORS DESC, SUM_WARNINGS DESC
 				LIMIT 10;
 			""")
 		for row in result.fetchall():
