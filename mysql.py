@@ -530,7 +530,7 @@ MYSQL_MAX_SLOW_QUERIES=20
 #ORDER BY SUM_ERRORS DESC, SUM_WARNINGS DESC;
 
 # Queries that raised errors
-def fetch_warn_err_queries(conn):
+def fetch_warning_error_queries(conn):
 	queries = {}
 	try:
 		# Get the slow queries
