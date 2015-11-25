@@ -549,8 +549,8 @@ def fetch_warning_error_queries(conn):
 			# Clean the digest string
 			clean_digest=clean_string(row['query'])
 			queries["exec_count_"+clean_digest] = row['exec_count']
-			queries["errors_"+clean_digest] = row['exec_time_total_ms']
-			queries["warnings_"+clean_digest] = row['exec_time_max_ms']
+			queries["errors_"+clean_digest] = row['errors']
+			queries["warnings_"+clean_digest] = row['warnings']
 
 	except MySQLdb.OperationalError:
 		return {}
