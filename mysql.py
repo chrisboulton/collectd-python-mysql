@@ -458,18 +458,18 @@ def is_ps_enabled(conn):
 	
 def clean_string(digest):
 	clean_digest=digest
+        clean_digest=re.sub(r'[^\x00-\x7F]+','_', clean_digest)
 	clean_digest=clean_digest.replace('`', '')
 	clean_digest=clean_digest.replace('?', '')
 	clean_digest=clean_digest.replace(' ', '_')
+	clean_digest=clean_digest.replace(',', '_')
 	clean_digest=clean_digest.replace('(', '_')
 	clean_digest=clean_digest.replace(')', '_')
-	clean_digest=clean_digest.replace('__', '_')
-	clean_digest=clean_digest.replace('.', '-')
-	clean_digest=clean_digest.replace(',_', ',')
+	clean_digest=clean_digest.replace('.', '_')
+        clean_digest=re.sub(r'(__)', '',clean_digest)
 	clean_digest=re.sub('_$', '',clean_digest)
 	return clean_digest	
 
-MYSQL_MAX_SLOW_QUERIES=20
 # http://www.markleith.co.uk/2011/04/18/monitoring-table-and-index-io-with-performance_schema/
 # http://www.markleith.co.uk/2012/07/04/mysql-performance-schema-statement-digests/
 #
@@ -535,10 +535,10 @@ def fetch_warning_error_queries(conn):
 	try:
 		# Get the slow queries
 		result = mysql_query(conn, """
-				SELECT IF(LENGTH(DIGEST_TEXT) > 128, CONCAT(LEFT(DIGEST_TEXT, 60), ' ... ', RIGHT(DIGEST_TEXT, 60)), DIGEST_TEXT) AS query,
+				SELECT DIGEST_TEXT AS query,
 				COUNT_STAR AS exec_count,
 				SUM_ERRORS AS errors,
-				SUM_WARNINGS AS warnings,
+				SUM_WARNINGS AS warnings
 				FROM performance_schema.events_statements_summary_by_digest
 				WHERE SUM_ERRORS > 0
 				OR SUM_WARNINGS > 0
@@ -546,8 +546,8 @@ def fetch_warning_error_queries(conn):
 				LIMIT 10;
 			""")
 		for row in result.fetchall():
-			# Clean the digest string
-			clean_digest=clean_string(row['query'])
+			# Clean the digest string 
+                        clean_digest=clean_string(row['query'])
 			queries["exec_count_"+clean_digest] = row['exec_count']
 			queries["errors_"+clean_digest] = row['errors']
 			queries["warnings_"+clean_digest] = row['warnings']
@@ -563,7 +563,7 @@ def fetch_slow_queries(conn):
 	try:
 		# Get the slow queries
 		result = mysql_query(conn, """
-				SELECT IF(LENGTH(DIGEST_TEXT) > 128, CONCAT(LEFT(DIGEST_TEXT, 60), ' ... ', RIGHT(DIGEST_TEXT, 60)), DIGEST_TEXT) AS query,
+				SELECT DIGEST_TEXT AS query,
 				COUNT_STAR AS exec_count,
 				(SUM_TIMER_WAIT/1000000000) AS exec_time_total_ms,
 				(MAX_TIMER_WAIT/1000000000) AS exec_time_max_ms,
@@ -576,7 +576,7 @@ def fetch_slow_queries(conn):
 			""")
 		for row in result.fetchall():
 			# Clean the digest string
-			clean_digest=clean_string(row['query'])
+                        clean_digest=clean_string(row['query'])
 			slow_queries["exec_count_"+clean_digest] = row['exec_count']
 			slow_queries["exec_time_total_"+clean_digest] = row['exec_time_total_ms']
 			slow_queries["exec_time_max_"+clean_digest] = row['exec_time_max_ms']
