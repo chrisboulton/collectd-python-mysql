@@ -450,8 +450,8 @@ def fetch_innodb_stats(conn):
 # Check if PENFORMANCE_SCHEMA is enabled
 def is_ps_enabled(conn):
 	result = mysql_query(conn, 'SHOW GLOBAL VARIABLES LIKE "performance_schema"')
-	row = result.fetchOne()
-	if row['performance_schema'] == 'ON':
+	row = result.fetchone()
+	if row['Value'] == 'ON':
 		return True
 	else:
 		return False
@@ -485,12 +485,6 @@ def clean_string(digest):
 # Connections per account (user/host)
 # 1) select * from accounts limit 100;
 
-# Connections per host
-# 1) select * from hosts limit 100;
-
-# Connections per user
-# 1) select * from users limit 100;
-
 # Operations (rows read / rows changed) per table
 # SELECT pst.object_schema AS table_schema, 
 #       pst.object_name AS table_name, 
@@ -504,8 +498,66 @@ def clean_string(digest):
 # GROUP BY pst.object_schema, pst.object_name
 # ORDER BY pst.sum_timer_wait DESC;
 
-# reads per index
-# SELECT object_schema AS table_schema, object_name AS table_name, index_name, count_read AS rows_read from performance_schema.table_io_waits_summary_by_index_usage WHERE index_name IS NOT NULL ORDER BY sum_timer_wait DESC;
+# Connections per account
+def fetch_connections_per_account(conn):
+	queries = {}
+	try:
+		result = mysql_query(conn, """
+				SELECT user,host,current_connections,total_connections
+				FROM performance_schema.accounts
+				LIMIT 10;
+			""")
+		for row in result.fetchall():
+			# Clean the digest string 
+                        clean_digest=clean_string(row['user']+'_'+row['host'])
+			queries["current_connectinos_per_host_"+clean_digest] = row['current_connections'] 
+			queries["total_connectinos_per_account_"+clean_digest] = row['total_connections'] 
+
+	except MySQLdb.OperationalError:
+		return {}
+
+	return queries
+
+
+# Connections per host
+def fetch_connections_per_host(conn):
+	queries = {}
+	try:
+		result = mysql_query(conn, """
+				SELECT host,current_connections,total_connections
+				FROM performance_schema.hosts
+				LIMIT 10;
+			""")
+		for row in result.fetchall():
+			# Clean the digest string 
+                        clean_digest=clean_string(row['host'])
+			queries["current_connectinos_per_host_"+clean_digest] = row['current_connections'] 
+			queries["total_connectinos_per_host_"+clean_digest] = row['total_connections'] 
+
+	except MySQLdb.OperationalError:
+		return {}
+
+	return queries
+
+# Connections per user
+def fetch_connections_per_user(conn):
+	queries = {}
+	try:
+		result = mysql_query(conn, """
+				SELECT user,current_connections,total_connections
+				FROM performance_schema.users
+				LIMIT 10;
+			""")
+		for row in result.fetchall():
+			# Clean the digest string 
+                        clean_digest=clean_string(row['user'])
+			queries["current_connectinos_per_user_"+clean_digest] = row['current_connections'] 
+			queries["total_connectinos_per_user_"+clean_digest] = row['total_connections'] 
+
+	except MySQLdb.OperationalError:
+		return {}
+
+	return queries
 
 # number of reads per index
 def fetch_number_of_reads_per_index(conn):
@@ -532,8 +584,6 @@ def fetch_number_of_reads_per_index(conn):
 		return {}
 
 	return queries
-
-
 
 # Indexes not being used
 def fetch_indexes_not_being_used(conn):
@@ -718,7 +768,17 @@ def read_callback():
 		for key in queries:
 			dispatch_value('number_of_reads_per_index', key, queries[key], 'counter')
 
+		queries=fetch_connections_per_user(conn)
+		for key in queries:
+			dispatch_value('connections_per_user', key, queries[key], 'counter')
 
+		queries=fetch_connections_per_host(conn)
+		for key in queries:
+			dispatch_value('connections_per_host', key, queries[key], 'counter')
+
+		queries=fetch_connections_per_account(conn)
+		for key in queries:
+			dispatch_value('connections_per_account', key, queries[key], 'counter')
 
 
 collectd.register_read(read_callback)
