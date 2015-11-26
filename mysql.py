@@ -509,9 +509,9 @@ def fetch_connections_per_account(conn):
 			""")
 		for row in result.fetchall():
 			# Clean the digest string 
-                        clean_digest=clean_string(row['user']+'_'+row['host'])
-			queries["current_connectinos_per_host_"+clean_digest] = row['current_connections'] 
-			queries["total_connectinos_per_account_"+clean_digest] = row['total_connections'] 
+                        clean_digest=str(row['user']+'_'+row['host'])
+			queries["current_connections_per_host_"+clean_digest] = row['current_connections'] 
+			queries["total_connections_per_account_"+clean_digest] = row['total_connections'] 
 
 	except MySQLdb.OperationalError:
 		return {}
@@ -530,9 +530,9 @@ def fetch_connections_per_host(conn):
 			""")
 		for row in result.fetchall():
 			# Clean the digest string 
-                        clean_digest=clean_string(row['host'])
-			queries["current_connectinos_per_host_"+clean_digest] = row['current_connections'] 
-			queries["total_connectinos_per_host_"+clean_digest] = row['total_connections'] 
+                        clean_digest=str(row['host'])
+			queries["current_connections_per_host_"+clean_digest] = row['current_connections'] 
+			queries["total_connections_per_host_"+clean_digest] = row['total_connections'] 
 
 	except MySQLdb.OperationalError:
 		return {}
@@ -550,9 +550,9 @@ def fetch_connections_per_user(conn):
 			""")
 		for row in result.fetchall():
 			# Clean the digest string 
-                        clean_digest=clean_string(row['user'])
-			queries["current_connectinos_per_user_"+clean_digest] = row['current_connections'] 
-			queries["total_connectinos_per_user_"+clean_digest] = row['total_connections'] 
+                        clean_digest=str(row['user'])
+			queries["current_connections_per_user_"+clean_digest] = row['current_connections'] 
+			queries["total_connections_per_user_"+clean_digest] = row['total_connections'] 
 
 	except MySQLdb.OperationalError:
 		return {}
