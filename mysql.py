@@ -507,27 +507,60 @@ def clean_string(digest):
 # reads per index
 # SELECT object_schema AS table_schema, object_name AS table_name, index_name, count_read AS rows_read from performance_schema.table_io_waits_summary_by_index_usage WHERE index_name IS NOT NULL ORDER BY sum_timer_wait DESC;
 
-# Indexes not being used
-#SELECT object_schema,
-#object_name,
-#index_name
-#FROM performance_schema.table_io_waits_summary_by_index_usage
-#WHERE index_name IS NOT NULL
-#AND count_star = 0
-#ORDER BY object_schema, object_name;
+# number of reads per index
+def fetch_number_of_reads_per_index(conn):
+	queries = {}
+	try:
+		result = mysql_query(conn, """
+				SELECT 
+					object_schema, 
+					object_name, 
+					index_name, 
+					count_read AS rows_read 
+				FROM performance_schema.table_io_waits_summary_by_index_usage 
+				WHERE index_name IS NOT NULL 
+					AND count_read>0
+				ORDER BY sum_timer_wait DESC
+				LIMIT 10;
+			""")
+		for row in result.fetchall():
+			# Clean the digest string 
+                        clean_digest=clean_string(row['object_schema']+'_'+row['object_name']+'_'+row['index_name'])
+			queries["number_of_reads_per_index_"+clean_digest] = row['rows_read'] 
 
-# Queries that have raised errors/warnings
-#SELECT IF(LENGTH(DIGEST_TEXT) > 64, CONCAT(LEFT(DIGEST_TEXT, 30), ' ... ', RIGHT(DIGEST_TEXT, 30)), DIGEST_TEXT) AS query,
-#COUNT_STAR AS exec_count,
-#SUM_ERRORS AS errors,
-#(SUM_ERRORS / COUNT_STAR) * 100 as error_pct,
-#SUM_WARNINGS AS warnings,
-#(SUM_WARNINGS / COUNT_STAR) * 100 as warning_pct,
-#DIGEST AS digest
-#FROM performance_schema.events_statements_summary_by_digest
-#WHERE SUM_ERRORS > 0
-#OR SUM_WARNINGS > 0
-#ORDER BY SUM_ERRORS DESC, SUM_WARNINGS DESC;
+	except MySQLdb.OperationalError:
+		return {}
+
+	return queries
+
+
+
+# Indexes not being used
+def fetch_indexes_not_being_used(conn):
+	queries = {}
+	try:
+		result = mysql_query(conn, """
+				SELECT object_schema,
+				object_name,
+				index_name
+				FROM performance_schema.table_io_waits_summary_by_index_usage
+				WHERE index_name IS NOT NULL
+				AND count_star = 0
+				AND object_schema != 'mysql'
+				ORDER BY object_schema, object_name
+				LIMIT 10;
+			""")
+		for row in result.fetchall():
+			# Clean the digest string 
+                        clean_digest=clean_string(row['object_schema']+'_'+row['object_name']+'_'+row['index_name'])
+			queries["index_not_being_used_"+clean_digest] = 1 
+
+	except MySQLdb.OperationalError:
+		return {}
+
+	return queries
+
+
 
 # Queries that raised errors
 def fetch_warning_error_queries(conn):
@@ -565,9 +598,9 @@ def fetch_slow_queries(conn):
 		result = mysql_query(conn, """
 				SELECT DIGEST_TEXT AS query,
 				COUNT_STAR AS exec_count,
-				(SUM_TIMER_WAIT/1000000000) AS exec_time_total_ms,
-				(MAX_TIMER_WAIT/1000000000) AS exec_time_max_ms,
-				(AVG_TIMER_WAIT/1000000000) AS exec_time_avg_ms,
+				round(SUM_TIMER_WAIT/1000000000) AS exec_time_total_ms,
+				round(MAX_TIMER_WAIT/1000000000) AS exec_time_max_ms,
+				round(AVG_TIMER_WAIT/1000000000) AS exec_time_avg_ms,
 				SUM_ROWS_SENT AS rows_sent_sum,
 				ROUND(SUM_ROWS_SENT / COUNT_STAR) AS rows_sent_avg,
 				SUM_ROWS_EXAMINED AS rows_scanned
@@ -667,13 +700,24 @@ def read_callback():
 		if key not in innodb_status: continue
 		dispatch_value('innodb', key, innodb_status[key], MYSQL_INNODB_STATUS_VARS[key])
 
-	slow_queries = fetch_slow_queries(conn)
-	for key in slow_queries:
-		dispatch_value('slow_query', key, slow_queries[key], 'counter')
+	# Performance_Schema metrics
+	if is_ps_enabled(conn):
+		slow_queries = fetch_slow_queries(conn)
+		for key in slow_queries:
+			dispatch_value('slow_query', key, slow_queries[key], 'counter')
+	
+		queries = fetch_warning_error_queries(conn)
+		for key in queries:
+			dispatch_value('warn_err_query', key, queries[key], 'counter')
+	
+		queries = fetch_indexes_not_being_used(conn)
+		for key in queries:
+			dispatch_value('indexes_not_being_used', key, queries[key], 'counter')
 
-	queries = fetch_warning_error_queries(conn)
-	for key in queries:
-		dispatch_value('warn_err_query', key, queries[key], 'counter')
+		queries = fetch_number_of_reads_per_index(conn)
+		for key in queries:
+			dispatch_value('number_of_reads_per_index', key, queries[key], 'counter')
+
 
 
 
