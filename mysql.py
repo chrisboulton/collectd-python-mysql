@@ -480,24 +480,6 @@ def clean_string(digest):
 # 4) List all normalized statements that use have done a full table scan ordered by the percentage of times a full scan was done, then by the number of times the statement executed
 # 5) List all normalized statements that have raised errors or warnings.
 
-# New
-
-# Connections per account (user/host)
-# 1) select * from accounts limit 100;
-
-# Operations (rows read / rows changed) per table
-# SELECT pst.object_schema AS table_schema, 
-#       pst.object_name AS table_name, 
-#       pst.count_read AS rows_read, 
-#       pst.count_write AS rows_changed,
-#       (pst.count_write * COUNT(psi.index_name)) AS rows_changed_x_indexes
-#  FROM performance_schema.table_io_waits_summary_by_table AS pst
-#  LEFT JOIN performance_schema.table_io_waits_summary_by_index_usage AS psi 
-#    ON pst.object_schema = psi.object_schema AND pst.object_name = psi.object_name
-#   AND psi.index_name IS NOT NULL
-# GROUP BY pst.object_schema, pst.object_name
-# ORDER BY pst.sum_timer_wait DESC;
-
 # Connections per account
 def fetch_connections_per_account(conn):
 	queries = {}
@@ -509,8 +491,8 @@ def fetch_connections_per_account(conn):
 			""")
 		for row in result.fetchall():
 			# Clean the digest string 
-                        clean_digest=str(row['user']+'_'+row['host'])
-			queries["current_connections_per_host_"+clean_digest] = row['current_connections'] 
+                        clean_digest=str(row['user'])+'_'+str(row['host'])
+			queries["current_connections_per_account_"+clean_digest] = row['current_connections'] 
 			queries["total_connections_per_account_"+clean_digest] = row['total_connections'] 
 
 	except MySQLdb.OperationalError:
@@ -558,27 +540,32 @@ def fetch_connections_per_user(conn):
 		return {}
 
 	return queries
-
-# number of reads per index
+n
+# number of reads/changed per index
 def fetch_number_of_reads_per_index(conn):
 	queries = {}
 	try:
 		result = mysql_query(conn, """
-				SELECT 
-					object_schema, 
-					object_name, 
-					index_name, 
-					count_read AS rows_read 
-				FROM performance_schema.table_io_waits_summary_by_index_usage 
-				WHERE index_name IS NOT NULL 
-					AND count_read>0
-				ORDER BY sum_timer_wait DESC
+				SELECT pst.object_schema AS table_schema, 
+				       pst.object_name AS table_name, 
+				       pst.count_read AS rows_read, 
+				       pst.count_write AS rows_changed,
+				       (pst.count_write * COUNT(psi.index_name)) AS rows_changed_x_indexes
+				  FROM performance_schema.table_io_waits_summary_by_table AS pst
+				  LEFT JOIN performance_schema.table_io_waits_summary_by_index_usage AS psi 
+				    ON pst.object_schema = psi.object_schema AND pst.object_name = psi.object_name
+				   AND psi.index_name IS NOT NULL
+				 WHERE pst.sum_timer_wait > 0
+				 GROUP BY pst.object_schema, pst.object_name
+				 ORDER BY pst.sum_timer_wait DESC
 				LIMIT 10;
+
 			""")
 		for row in result.fetchall():
 			# Clean the digest string 
                         clean_digest=clean_string(row['object_schema']+'_'+row['object_name']+'_'+row['index_name'])
-			queries["number_of_reads_per_index_"+clean_digest] = row['rows_read'] 
+			queries["number_of_rows_reads_per_index_"+clean_digest] = row['rows_read'] 
+			queries["number_of_rows_changed_per_index_"+clean_digest] = row['rows_changed'] 
 
 	except MySQLdb.OperationalError:
 		return {}
@@ -754,31 +741,31 @@ def read_callback():
 	if is_ps_enabled(conn):
 		slow_queries = fetch_slow_queries(conn)
 		for key in slow_queries:
-			dispatch_value('slow_query', key, slow_queries[key], 'counter')
+			dispatch_value('slow_query', key, slow_queries[key], 'gauge')
 	
 		queries = fetch_warning_error_queries(conn)
 		for key in queries:
-			dispatch_value('warn_err_query', key, queries[key], 'counter')
+			dispatch_value('warn_err_query', key, queries[key], 'gauge')
 	
 		queries = fetch_indexes_not_being_used(conn)
 		for key in queries:
-			dispatch_value('indexes_not_being_used', key, queries[key], 'counter')
+			dispatch_value('indexes_not_being_used', key, queries[key], 'gauge')
 
 		queries = fetch_number_of_reads_per_index(conn)
 		for key in queries:
-			dispatch_value('number_of_reads_per_index', key, queries[key], 'counter')
+			dispatch_value('number_of_reads_per_index', key, queries[key], 'gauge')
 
 		queries=fetch_connections_per_user(conn)
 		for key in queries:
-			dispatch_value('connections_per_user', key, queries[key], 'counter')
+			dispatch_value('connections_per_user', key, queries[key], 'gauge')
 
 		queries=fetch_connections_per_host(conn)
 		for key in queries:
-			dispatch_value('connections_per_host', key, queries[key], 'counter')
+			dispatch_value('connections_per_host', key, queries[key], 'gauge')
 
 		queries=fetch_connections_per_account(conn)
 		for key in queries:
-			dispatch_value('connections_per_account', key, queries[key], 'counter')
+			dispatch_value('connections_per_account', key, queries[key], 'gauge')
 
 
 collectd.register_read(read_callback)
