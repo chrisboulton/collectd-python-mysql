@@ -540,7 +540,7 @@ def fetch_connections_per_user(conn):
 		return {}
 
 	return queries
-n
+
 # number of reads/changed per index
 def fetch_number_of_reads_per_index(conn):
 	queries = {}
