@@ -457,7 +457,7 @@ def is_ps_enabled(conn):
 		return False
 	
 def clean_string(digest):
-	clean_digest=digest
+	clean_digest=str(digest)
         clean_digest=re.sub(r'[^\x00-\x7F]+','_', clean_digest)
 	clean_digest=clean_digest.replace('`', '')
 	clean_digest=clean_digest.replace('?', '')
