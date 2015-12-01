@@ -548,9 +548,9 @@ def fetch_number_of_reads_per_index(conn):
 		result = mysql_query(conn, """
 				SELECT pst.object_schema AS table_schema, 
 				       pst.object_name AS table_name, 
+				       psi.object_name AS index_name, 
 				       pst.count_read AS rows_read, 
-				       pst.count_write AS rows_changed,
-				       (pst.count_write * COUNT(psi.index_name)) AS rows_changed_x_indexes
+				       pst.count_write AS rows_changed
 				  FROM performance_schema.table_io_waits_summary_by_table AS pst
 				  LEFT JOIN performance_schema.table_io_waits_summary_by_index_usage AS psi 
 				    ON pst.object_schema = psi.object_schema AND pst.object_name = psi.object_name
@@ -563,7 +563,7 @@ def fetch_number_of_reads_per_index(conn):
 			""")
 		for row in result.fetchall():
 			# Clean the digest string 
-                        clean_digest=clean_string(row['object_schema']+'_'+row['object_name']+'_'+row['index_name'])
+                        clean_digest=clean_string(row['table_schema']+'_'+row['table_name']+'_'+row['index_name'])
 			queries["number_of_rows_reads_per_index_"+clean_digest] = row['rows_read'] 
 			queries["number_of_rows_changed_per_index_"+clean_digest] = row['rows_changed'] 
 
