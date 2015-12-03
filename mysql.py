@@ -643,6 +643,7 @@ def fetch_slow_queries(conn):
 				ROUND(SUM_ROWS_SENT / COUNT_STAR) AS rows_sent_avg,
 				SUM_ROWS_EXAMINED AS rows_scanned
 				FROM performance_schema.events_statements_summary_by_digest
+				WHERE DIGEST_TEXT NOT LIKE 'null'
 				ORDER BY SUM_TIMER_WAIT DESC LIMIT 10;
 			""")
 		for row in result.fetchall():
