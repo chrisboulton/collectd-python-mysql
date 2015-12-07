@@ -913,9 +913,9 @@ def read_callback():
                 for key in queries:
                         dispatch_value('warn_err_query', key, queries[key], 'gauge')
         
-                queries = fetch_indexes_not_being_used(conn)
-                for key in queries:
-                        dispatch_value('indexes_not_being_used', key, queries[key], 'gauge')
+#                queries = fetch_indexes_not_being_used(conn)
+#                for key in queries:
+#                        dispatch_value('indexes_not_being_used', key, queries[key], 'gauge')
 
 #               queries = fetch_number_of_reads_per_index(conn)
 #               for key in queries:
