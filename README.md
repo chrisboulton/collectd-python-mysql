@@ -332,6 +332,7 @@ If Performance_schema is enabled you will get the following metrics as well.
     Indexes not being used (didn't get any read) - schema, table, index_name
     Queries that raised errors/warnings - Query, number of executions, errors, warnings
     Slow queries - Query, number of executions, execution time (total,max,avg), rows sent (total, avg), scanned rows
+    Added slow queries excluding table names. Very useful when you have different table with same 'schema'.
 
 ## License
 MIT (http://www.opensource.org/licenses/mit-license.php)
