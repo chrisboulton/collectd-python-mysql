@@ -9,11 +9,11 @@
 # Configuration:
 #  Import mysql
 #  <Module mysql>
-#  	Host localhost
-#  	Port 3306 (optional)
-#  	User root
-#  	Password xxxx
-#  	HeartbeatTable percona.heartbeat (optional, if using pt-heartbeat)
+#       Host localhost
+#       Port 3306 (optional)
+#       User root
+#       Password xxxx
+#       HeartbeatTable percona.heartbeat (optional, if using pt-heartbeat)
 #   Verbose true (optional, to enable debugging)
 #  </Module>
 #
@@ -28,746 +28,910 @@ import re
 import MySQLdb
 
 MYSQL_CONFIG = {
-	'Host':           'localhost',
-	'Port':           3306,
-	'User':           'root',
-	'Password':       '',
-	'HeartbeatTable': '',
-	'Verbose':        False,
+    'Host': 'localhost',
+    'Port': 3306,
+    'User': 'root',
+    'Password': '',
+    'HeartbeatTable': '',
+    'Verbose':        False,
 }
 
 MYSQL_STATUS_VARS = {
-	'Aborted_clients': 'counter',
-	'Aborted_connects': 'counter',
-	'Binlog_cache_disk_use': 'counter',
-	'Binlog_cache_use': 'counter',
-	'Bytes_received': 'counter',
-	'Bytes_sent': 'counter',
-	'Connections': 'counter',
-	'Created_tmp_disk_tables': 'counter',
-	'Created_tmp_files': 'counter',
-	'Created_tmp_tables': 'counter',
-	'Innodb_buffer_pool_pages_data': 'gauge',
-	'Innodb_buffer_pool_pages_dirty': 'gauge',
-	'Innodb_buffer_pool_pages_free': 'gauge',
-	'Innodb_buffer_pool_pages_total': 'gauge',
-	'Innodb_buffer_pool_read_requests': 'counter',
-	'Innodb_buffer_pool_reads': 'counter',
-	'Innodb_checkpoint_age': 'gauge',
-	'Innodb_checkpoint_max_age': 'gauge',
-	'Innodb_data_fsyncs': 'counter',
-	'Innodb_data_pending_fsyncs': 'gauge',
-	'Innodb_data_pending_reads': 'gauge',
-	'Innodb_data_pending_writes': 'gauge',
-	'Innodb_data_read': 'counter',
-	'Innodb_data_reads': 'counter',
-	'Innodb_data_writes': 'counter',
-	'Innodb_data_written': 'counter',
-	'Innodb_deadlocks': 'counter',
-	'Innodb_history_list_length': 'gauge',
-	'Innodb_ibuf_free_list': 'gauge',
-	'Innodb_ibuf_merged_delete_marks': 'counter',
-	'Innodb_ibuf_merged_deletes': 'counter',
-	'Innodb_ibuf_merged_inserts': 'counter',
-	'Innodb_ibuf_merges': 'counter',
-	'Innodb_ibuf_segment_size': 'gauge',
-	'Innodb_ibuf_size': 'gauge',
-	'Innodb_lsn_current': 'counter',
-	'Innodb_lsn_flushed': 'counter',
-	'Innodb_max_trx_id': 'counter',
-	'Innodb_mem_adaptive_hash': 'gauge',
-	'Innodb_mem_dictionary': 'gauge',
-	'Innodb_mem_total': 'gauge',
-	'Innodb_mutex_os_waits': 'counter',
-	'Innodb_mutex_spin_rounds': 'counter',
-	'Innodb_mutex_spin_waits': 'counter',
-	'Innodb_os_log_pending_fsyncs': 'gauge',
-	'Innodb_pages_created': 'counter',
-	'Innodb_pages_read': 'counter',
-	'Innodb_pages_written': 'counter',
-	'Innodb_row_lock_time': 'counter',
-	'Innodb_row_lock_time_avg': 'gauge',
-	'Innodb_row_lock_time_max': 'gauge',
-	'Innodb_row_lock_waits': 'counter',
-	'Innodb_rows_deleted': 'counter',
-	'Innodb_rows_inserted': 'counter',
-	'Innodb_rows_read': 'counter',
-	'Innodb_rows_updated': 'counter',
-	'Innodb_s_lock_os_waits': 'counter',
-	'Innodb_s_lock_spin_rounds': 'counter',
-	'Innodb_s_lock_spin_waits': 'counter',
-	'Innodb_uncheckpointed_bytes': 'gauge',
-	'Innodb_unflushed_log': 'gauge',
-	'Innodb_unpurged_txns': 'gauge',
-	'Innodb_x_lock_os_waits': 'counter',
-	'Innodb_x_lock_spin_rounds': 'counter',
-	'Innodb_x_lock_spin_waits': 'counter',
-	'Key_blocks_not_flushed': 'gauge',
-	'Key_blocks_unused': 'gauge',
-	'Key_blocks_used': 'gauge',
-	'Key_read_requests': 'counter',
-	'Key_reads': 'counter',
-	'Key_write_requests': 'counter',
-	'Key_writes': 'counter',
-	'Max_used_connections': 'gauge',
-	'Open_files': 'gauge',
-	'Open_table_definitions': 'gauge',
-	'Open_tables': 'gauge',
-	'Opened_files': 'counter',
-	'Opened_table_definitions': 'counter',
-	'Opened_tables': 'counter',
-	'Qcache_free_blocks': 'gauge',
-	'Qcache_free_memory': 'gauge',
-	'Qcache_hits': 'counter',
-	'Qcache_inserts': 'counter',
-	'Qcache_lowmem_prunes': 'counter',
-	'Qcache_not_cached': 'counter',
-	'Qcache_queries_in_cache': 'counter',
-	'Qcache_total_blocks': 'counter',
-	'Questions': 'counter',
-	'Select_full_join': 'counter',
-	'Select_full_range_join': 'counter',
-	'Select_range': 'counter',
-	'Select_range_check': 'counter',
-	'Select_scan': 'counter',
-	'Slave_open_temp_tables': 'gauge',
-	'Slave_retried_transactions': 'counter',
-	'Slow_launch_threads': 'counter',
-	'Slow_queries': 'counter',
-	'Sort_merge_passes': 'counter',
-	'Sort_range': 'counter',
-	'Sort_rows': 'counter',
-	'Sort_scan': 'counter',
-	'Table_locks_immediate': 'counter',
-	'Table_locks_waited': 'counter',
-	'Table_open_cache_hits': 'counter',
-	'Table_open_cache_misses': 'counter',
-	'Table_open_cache_overflows': 'counter',
-	'Threadpool_idle_threads': 'gauge',
-	'Threadpool_threads': 'gauge',
-	'Threads_cached': 'gauge',
-	'Threads_connected': 'gauge',
-	'Threads_created': 'counter',
-	'Threads_running': 'gauge',
-	'Uptime': 'gauge',
+    'Aborted_clients': 'counter',
+    'Aborted_connects': 'counter',
+    'Binlog_cache_disk_use': 'counter',
+    'Binlog_cache_use': 'counter',
+    'Bytes_received': 'counter',
+    'Bytes_sent': 'counter',
+    'Connections': 'counter',
+    'Created_tmp_disk_tables': 'counter',
+    'Created_tmp_files': 'counter',
+    'Created_tmp_tables': 'counter',
+    'Innodb_buffer_pool_pages_data': 'gauge',
+    'Innodb_buffer_pool_pages_dirty': 'gauge',
+    'Innodb_buffer_pool_pages_free': 'gauge',
+    'Innodb_buffer_pool_pages_total': 'gauge',
+    'Innodb_buffer_pool_read_requests': 'counter',
+    'Innodb_buffer_pool_reads': 'counter',
+    'Innodb_checkpoint_age': 'gauge',
+    'Innodb_checkpoint_max_age': 'gauge',
+    'Innodb_data_fsyncs': 'counter',
+    'Innodb_data_pending_fsyncs': 'gauge',
+    'Innodb_data_pending_reads': 'gauge',
+    'Innodb_data_pending_writes': 'gauge',
+    'Innodb_data_read': 'counter',
+    'Innodb_data_reads': 'counter',
+    'Innodb_data_writes': 'counter',
+    'Innodb_data_written': 'counter',
+    'Innodb_deadlocks': 'counter',
+    'Innodb_history_list_length': 'gauge',
+    'Innodb_ibuf_free_list': 'gauge',
+    'Innodb_ibuf_merged_delete_marks': 'counter',
+    'Innodb_ibuf_merged_deletes': 'counter',
+    'Innodb_ibuf_merged_inserts': 'counter',
+    'Innodb_ibuf_merges': 'counter',
+    'Innodb_ibuf_segment_size': 'gauge',
+    'Innodb_ibuf_size': 'gauge',
+    'Innodb_lsn_current': 'counter',
+    'Innodb_lsn_flushed': 'counter',
+    'Innodb_max_trx_id': 'counter',
+    'Innodb_mem_adaptive_hash': 'gauge',
+    'Innodb_mem_dictionary': 'gauge',
+    'Innodb_mem_total': 'gauge',
+    'Innodb_mutex_os_waits': 'counter',
+    'Innodb_mutex_spin_rounds': 'counter',
+    'Innodb_mutex_spin_waits': 'counter',
+    'Innodb_os_log_pending_fsyncs': 'gauge',
+    'Innodb_pages_created': 'counter',
+    'Innodb_pages_read': 'counter',
+    'Innodb_pages_written': 'counter',
+    'Innodb_row_lock_time': 'counter',
+    'Innodb_row_lock_time_avg': 'gauge',
+    'Innodb_row_lock_time_max': 'gauge',
+    'Innodb_row_lock_waits': 'counter',
+    'Innodb_rows_deleted': 'counter',
+    'Innodb_rows_inserted': 'counter',
+    'Innodb_rows_read': 'counter',
+    'Innodb_rows_updated': 'counter',
+    'Innodb_s_lock_os_waits': 'counter',
+    'Innodb_s_lock_spin_rounds': 'counter',
+    'Innodb_s_lock_spin_waits': 'counter',
+    'Innodb_uncheckpointed_bytes': 'gauge',
+    'Innodb_unflushed_log': 'gauge',
+    'Innodb_unpurged_txns': 'gauge',
+    'Innodb_x_lock_os_waits': 'counter',
+    'Innodb_x_lock_spin_rounds': 'counter',
+    'Innodb_x_lock_spin_waits': 'counter',
+    'Key_blocks_not_flushed': 'gauge',
+    'Key_blocks_unused': 'gauge',
+    'Key_blocks_used': 'gauge',
+    'Key_read_requests': 'counter',
+    'Key_reads': 'counter',
+    'Key_write_requests': 'counter',
+    'Key_writes': 'counter',
+    'Max_used_connections': 'gauge',
+    'Open_files': 'gauge',
+    'Open_table_definitions': 'gauge',
+    'Open_tables': 'gauge',
+    'Opened_files': 'counter',
+    'Opened_table_definitions': 'counter',
+    'Opened_tables': 'counter',
+    'Qcache_free_blocks': 'gauge',
+    'Qcache_free_memory': 'gauge',
+    'Qcache_hits': 'counter',
+    'Qcache_inserts': 'counter',
+    'Qcache_lowmem_prunes': 'counter',
+    'Qcache_not_cached': 'counter',
+    'Qcache_queries_in_cache': 'counter',
+    'Qcache_total_blocks': 'counter',
+    'Questions': 'counter',
+    'Select_full_join': 'counter',
+    'Select_full_range_join': 'counter',
+    'Select_range': 'counter',
+    'Select_range_check': 'counter',
+    'Select_scan': 'counter',
+    'Slave_open_temp_tables': 'gauge',
+    'Slave_retried_transactions': 'counter',
+    'Slow_launch_threads': 'counter',
+    'Slow_queries': 'counter',
+    'Sort_merge_passes': 'counter',
+    'Sort_range': 'counter',
+    'Sort_rows': 'counter',
+    'Sort_scan': 'counter',
+    'Table_locks_immediate': 'counter',
+    'Table_locks_waited': 'counter',
+    'Table_open_cache_hits': 'counter',
+    'Table_open_cache_misses': 'counter',
+    'Table_open_cache_overflows': 'counter',
+    'Threadpool_idle_threads': 'gauge',
+    'Threadpool_threads': 'gauge',
+    'Threads_cached': 'gauge',
+    'Threads_connected': 'gauge',
+    'Threads_created': 'counter',
+    'Threads_running': 'gauge',
+    'Uptime': 'gauge',
 }
 
 MYSQL_VARS = [
-	'binlog_stmt_cache_size',
-	'innodb_additional_mem_pool_size',
-	'innodb_buffer_pool_size',
-	'innodb_concurrency_tickets',
-	'innodb_io_capacity',
-	'innodb_log_buffer_size',
-	'innodb_log_file_size',
-	'innodb_open_files',
-	'innodb_open_files',
-	'join_buffer_size',
-	'max_connections',
-	'open_files_limit',
-	'query_cache_limit',
-	'query_cache_size',
-	'query_cache_size',
-	'read_buffer_size',
-	'table_cache',
-	'table_definition_cache',
-	'table_open_cache',
-	'thread_cache_size',
-	'thread_cache_size',
-	'thread_concurrency',
-	'tmp_table_size',
+    'binlog_stmt_cache_size',
+    'innodb_additional_mem_pool_size',
+    'innodb_buffer_pool_size',
+    'innodb_concurrency_tickets',
+    'innodb_io_capacity',
+    'innodb_log_buffer_size',
+    'innodb_log_file_size',
+    'innodb_open_files',
+    'innodb_open_files',
+    'join_buffer_size',
+    'max_connections',
+    'open_files_limit',
+    'query_cache_limit',
+    'query_cache_size',
+    'query_cache_size',
+    'read_buffer_size',
+    'table_cache',
+    'table_definition_cache',
+    'table_open_cache',
+    'thread_cache_size',
+    'thread_cache_size',
+    'thread_concurrency',
+    'tmp_table_size',
 ]
 
 MYSQL_PROCESS_STATES = {
-	'closing_tables': 0,
-	'copying_to_tmp_table': 0,
-	'end': 0,
-	'freeing_items': 0,
-	'init': 0,
-	'locked': 0,
-	'login': 0,
-	'none': 0,
-	'other': 0,
-	'preparing': 0,
-	'reading_from_net': 0,
-	'sending_data': 0,
-	'sorting_result': 0,
-	'statistics': 0,
-	'updating': 0,
-	'writing_to_net': 0,
+    'closing_tables': 0,
+    'copying_to_tmp_table': 0,
+    'end': 0,
+    'freeing_items': 0,
+    'init': 0,
+    'locked': 0,
+    'login': 0,
+    'none': 0,
+    'other': 0,
+    'preparing': 0,
+    'reading_from_net': 0,
+    'sending_data': 0,
+    'sorting_result': 0,
+    'statistics': 0,
+    'updating': 0,
+    'writing_to_net': 0,
 }
 
 MYSQL_INNODB_STATUS_VARS = {
-	'active_transactions': 'gauge',
-	'current_transactions': 'gauge',
-	'file_reads': 'counter',
-	'file_system_memory': 'gauge',
-	'file_writes': 'counter',
-	'innodb_lock_structs': 'gauge',
-	'innodb_lock_wait_secs': 'gauge',
-	'innodb_locked_tables': 'gauge',
-	'innodb_sem_wait_time_ms': 'gauge',
-	'innodb_sem_waits': 'gauge',
-	'innodb_tables_in_use': 'gauge',
-	'lock_system_memory': 'gauge',
-	'locked_transactions': 'gauge',
-	'log_writes': 'counter',
-	'page_hash_memory': 'gauge',
-	'pending_aio_log_ios': 'gauge',
-	'pending_buf_pool_flushes': 'gauge',
-	'pending_chkp_writes': 'gauge',
-	'pending_ibuf_aio_reads': 'gauge',
-	'pending_log_writes':'gauge',
-	'queries_inside': 'gauge',
-	'queries_queued': 'gauge',
-	'read_views': 'gauge',
+    'active_transactions': 'gauge',
+    'current_transactions': 'gauge',
+    'file_reads': 'counter',
+    'file_system_memory': 'gauge',
+    'file_writes': 'counter',
+    'innodb_lock_structs': 'gauge',
+    'innodb_lock_wait_secs': 'gauge',
+    'innodb_locked_tables': 'gauge',
+    'innodb_sem_wait_time_ms': 'gauge',
+    'innodb_sem_waits': 'gauge',
+    'innodb_tables_in_use': 'gauge',
+    'lock_system_memory': 'gauge',
+    'locked_transactions': 'gauge',
+    'log_writes': 'counter',
+    'page_hash_memory': 'gauge',
+    'pending_aio_log_ios': 'gauge',
+    'pending_buf_pool_flushes': 'gauge',
+    'pending_chkp_writes': 'gauge',
+    'pending_ibuf_aio_reads': 'gauge',
+    'pending_log_writes': 'gauge',
+    'queries_inside': 'gauge',
+    'queries_queued': 'gauge',
+    'read_views': 'gauge',
 }
 
 MYSQL_INNODB_STATUS_MATCHES = {
-	# 0 read views open inside InnoDB
-	'read views open inside InnoDB': {
-		'read_views': 0,
-	},
-	# 5635328 OS file reads, 27018072 OS file writes, 20170883 OS fsyncs
-	' OS file reads, ': {
-		'file_reads': 0,
-		'file_writes': 4,
-	},
-	# ibuf aio reads: 0, log i/o's: 0, sync i/o's: 0
-	'ibuf aio reads': {
-		'pending_ibuf_aio_reads': 3,
-		'pending_aio_log_ios': 6,
-		'pending_aio_sync_ios': 9,
-	},
-	# Pending flushes (fsync) log: 0; buffer pool: 0
-	'Pending flushes (fsync)': {
-		'pending_buf_pool_flushes': 7,
-	},
-	# 16086708 log i/o's done, 106.07 log i/o's/second
-	" log i/o's done, ": {
-		'log_writes': 0,
-	},
-	# 0 pending log writes, 0 pending chkp writes
-	' pending log writes, ': {
-		'pending_log_writes': 0,
-		'pending_chkp_writes': 4,
-	},
-	# Page hash           2302856 (buffer pool 0 only)
-	'Page hash    ': {
-		'page_hash_memory': 2,
-	},
-	# File system         657820264 	(812272 + 657007992)
-	'File system    ': {
-		'file_system_memory': 2,
-	},
-	# Lock system         143820296 	(143819576 + 720)
-	'Lock system    ': {
-		'lock_system_memory': 2,
-	},
-	# 0 queries inside InnoDB, 0 queries in queue
-	'queries inside InnoDB, ': {
-		'queries_inside': 0,
-		'queries_queued': 4,
-	},
-	# --Thread 139954487744256 has waited at dict0dict.cc line 472 for 0.0000 seconds the semaphore:
-	'seconds the semaphore': {
-		'innodb_sem_waits': lambda row, stats: stats['innodb_sem_waits'] + 1,
-		'innodb_sem_wait_time_ms': lambda row, stats: int(row[9]) * 1000,
-	},
-	# mysql tables in use 1, locked 1
-	'mysql tables in use': {
-		'innodb_tables_in_use': lambda row, stats: stats['innodb_tables_in_use'] + int(row[4]),
-		'innodb_locked_tables': lambda row, stats: stats['innodb_locked_tables'] + int(row[6]),
-	},
-	"------- TRX HAS BEEN": {
-		"innodb_lock_wait_secs": lambda row, stats: stats['innodb_lock_wait_secs'] + int(row[5]),
-	},
+    # 0 read views open inside InnoDB
+    'read views open inside InnoDB': {
+        'read_views': 0,
+    },
+    # 5635328 OS file reads, 27018072 OS file writes, 20170883 OS fsyncs
+    ' OS file reads, ': {
+        'file_reads': 0,
+        'file_writes': 4,
+    },
+    # ibuf aio reads: 0, log i/o's: 0, sync i/o's: 0
+    'ibuf aio reads': {
+        'pending_ibuf_aio_reads': 3,
+        'pending_aio_log_ios': 6,
+        'pending_aio_sync_ios': 9,
+    },
+    # Pending flushes (fsync) log: 0; buffer pool: 0
+    'Pending flushes (fsync)': {
+        'pending_buf_pool_flushes': 7,
+    },
+    # 16086708 log i/o's done, 106.07 log i/o's/second
+    " log i/o's done, ": {
+        'log_writes': 0,
+    },
+    # 0 pending log writes, 0 pending chkp writes
+    ' pending log writes, ': {
+        'pending_log_writes': 0,
+        'pending_chkp_writes': 4,
+    },
+    # Page hash           2302856 (buffer pool 0 only)
+    'Page hash    ': {
+        'page_hash_memory': 2,
+    },
+    # File system         657820264     (812272 + 657007992)
+    'File system    ': {
+        'file_system_memory': 2,
+    },
+    # Lock system         143820296     (143819576 + 720)
+    'Lock system    ': {
+        'lock_system_memory': 2,
+    },
+    # 0 queries inside InnoDB, 0 queries in queue
+    'queries inside InnoDB, ': {
+        'queries_inside': 0,
+        'queries_queued': 4,
+    },
+    # --Thread 139954487744256 has waited at dict0dict.cc line 472
+    # for 0.0000 seconds the semaphore:
+    'seconds the semaphore': {
+        'innodb_sem_waits': lambda row, stats: stats['innodb_sem_waits'] + 1,
+        'innodb_sem_wait_time_ms': lambda row, stats: int(row[9]) * 1000,
+    },
+    # mysql tables in use 1, locked 1
+    'mysql tables in use': {
+        'innodb_tables_in_use': lambda row, stats:
+            stats['innodb_tables_in_use'] + int(row[4]),
+        'innodb_locked_tables': lambda row, stats:
+            stats['innodb_locked_tables'] + int(row[6]),
+         },
+    "------- TRX HAS BEEN": {
+        "innodb_lock_wait_secs": lambda row,
+            stats: stats['innodb_lock_wait_secs'] + int(row[5]),
+    },
 }
 
+
 def get_mysql_conn():
-	return MySQLdb.connect(
-		host=MYSQL_CONFIG['Host'],
-		port=MYSQL_CONFIG['Port'],
-		user=MYSQL_CONFIG['User'],
-		passwd=MYSQL_CONFIG['Password']
-	)
+    return MySQLdb.connect(
+        host=MYSQL_CONFIG['Host'],
+        port=MYSQL_CONFIG['Port'],
+        user=MYSQL_CONFIG['User'],
+        passwd=MYSQL_CONFIG['Password']
+    )
+
 
 def mysql_query(conn, query):
-	cur = conn.cursor(MySQLdb.cursors.DictCursor)
-	cur.execute(query)
-	return cur
+    cur = conn.cursor(MySQLdb.cursors.DictCursor)
+    cur.execute(query)
+    return cur
+
 
 def fetch_mysql_status(conn):
-	result = mysql_query(conn, 'SHOW GLOBAL STATUS')
-	status = {}
-	for row in result.fetchall():
-		status[row['Variable_name']] = row['Value']
+    result = mysql_query(conn, 'SHOW GLOBAL STATUS')
+    status = {}
+    for row in result.fetchall():
+        status[row['Variable_name']] = row['Value']
 
-	# calculate the number of unpurged txns from existing variables
-	if 'Innodb_max_trx_id' in status:
-		status['Innodb_unpurged_txns'] = int(status['Innodb_max_trx_id']) - int(status['Innodb_purge_trx_id'])
+        # calculate the number of unpurged txns from existing variables
+        if 'Innodb_max_trx_id' in status:
+                status['Innodb_unpurged_txns'] = \
+                    int(status['Innodb_max_trx_id']) - \
+                    int(status['Innodb_purge_trx_id'])
 
-	if 'Innodb_lsn_last_checkpoint' in status:
-		status['Innodb_uncheckpointed_bytes'] = int(status['Innodb_lsn_current'])- int(status['Innodb_lsn_last_checkpoint'])
+        if 'Innodb_lsn_last_checkpoint' in status:
+                status['Innodb_uncheckpointed_bytes'] = \
+                    int(status['Innodb_lsn_current']) - \
+                    int(status['Innodb_lsn_last_checkpoint'])
 
-	if 'Innodb_lsn_flushed' in status:
-		status['Innodb_unflushed_log'] = int(status['Innodb_lsn_current']) - int(status['Innodb_lsn_flushed'])
+        if 'Innodb_lsn_flushed' in status:
+                status['Innodb_unflushed_log'] = \
+                    int(status['Innodb_lsn_current']) - \
+                    int(status['Innodb_lsn_flushed'])
 
-	return status
+        return status
+
 
 def fetch_mysql_master_stats(conn):
-	try:
-		result = mysql_query(conn, 'SHOW BINARY LOGS')
-	except MySQLdb.OperationalError:
-		return {}
+        try:
+                result = mysql_query(conn, 'SHOW BINARY LOGS')
+        except MySQLdb.OperationalError:
+                return {}
 
-	stats = {
-		'binary_log_space': 0,
-	}
+        stats = {
+                'binary_log_space': 0,
+        }
 
-	for row in result.fetchall():
-		if 'File_size' in row and row['File_size'] > 0:
-			stats['binary_log_space'] += int(row['File_size'])
+        for row in result.fetchall():
+                if 'File_size' in row and row['File_size'] > 0:
+                        stats['binary_log_space'] += int(row['File_size'])
 
-	return stats
+        return stats
+
 
 def fetch_mysql_slave_stats(conn):
-	result    = mysql_query(conn, 'SHOW SLAVE STATUS')
-	slave_row = result.fetchone()
-	if slave_row is None:
-		return {}
+        result = mysql_query(conn, 'SHOW SLAVE STATUS')
+        slave_row = result.fetchone()
+        if slave_row is None:
+                return {}
+        if slave_row['Seconds_Behind_Master'] != None:
+            slave_lag = slave_row['Seconds_Behind_Master']
+        else:
+            slave_lag = 0
 
-	status = {
-		'relay_log_space': slave_row['Relay_Log_Space'],
-		'slave_lag':       slave_row['Seconds_Behind_Master'] if slave_row['Seconds_Behind_Master'] != None else 0,
-	}
+        status = {
+                'relay_log_space': slave_row['Relay_Log_Space'],
+                'slave_lag': slave_lag,
+        }
 
-	if MYSQL_CONFIG['HeartbeatTable']:
-		query = """
-			SELECT MAX(UNIX_TIMESTAMP() - UNIX_TIMESTAMP(ts)) AS delay
-			FROM %s
-			WHERE server_id = %s
-		""" % (MYSQL_CONFIG['HeartbeatTable'], slave_row['Master_Server_Id'])
-		result = mysql_query(conn, query)
-		row    = result.fetchone()
-		if 'delay' in row and row['delay'] != None:
-			status['slave_lag'] = row['delay']
+        if MYSQL_CONFIG['HeartbeatTable']:
+                query = """
+                        SELECT
+                        MAX(UNIX_TIMESTAMP() - UNIX_TIMESTAMP(ts)) AS delay
+                        FROM %s
+                        WHERE server_id = %s
+                """ % (MYSQL_CONFIG['HeartbeatTable'],
+                       slave_row['Master_Server_Id'])
+                result = mysql_query(conn, query)
+                row = result.fetchone()
+                if 'delay' in row and row['delay'] != None:
+                    status['slave_lag'] = row['delay']
 
-	status['slave_running'] = 1 if slave_row['Slave_SQL_Running'] == 'Yes' else 0
-	status['slave_stopped'] = 1 if slave_row['Slave_SQL_Running'] != 'Yes' else 0
-	return status
+        if slave_row['Slave_SQL_Running'] == 'Yes':
+            status['slave_running'] = 1
+        else:
+            status['slave_running'] = 0
+
+        if slave_row['Slave_SQL_Running'] == 'Yes':
+            status['slave_stopped'] = 1
+        else:
+            status['slave_stopped'] = 0
+
+        return status
+
 
 def fetch_mysql_process_states(conn):
-	global MYSQL_PROCESS_STATES
-	result = mysql_query(conn, 'SHOW PROCESSLIST')
-	states = MYSQL_PROCESS_STATES.copy()
-	for row in result.fetchall():
-		state = row['State']
-		if state == '' or state == None: state = 'none'
-		state = re.sub(r'^(Table lock|Waiting for .*lock)$', "Locked", state)
-		state = state.lower().replace(" ", "_")
-		if state not in states: state = 'other'
-		states[state] += 1
+        global MYSQL_PROCESS_STATES
+        result = mysql_query(conn, 'SHOW PROCESSLIST')
+        states = MYSQL_PROCESS_STATES.copy()
+        for row in result.fetchall():
+                state = row['State']
+                if state == '' or state is None:
+                    state = 'none'
+                state = re.sub(r'^(Table lock|Waiting for .*lock)$',
+                               "Locked", state)
+                state = state.lower().replace(" ", "_")
+                if state not in states:
+                    state = 'other'
+                states[state] += 1
 
-	return states
+        return states
+
 
 def fetch_mysql_variables(conn):
-	global MYSQL_VARS
-	result = mysql_query(conn, 'SHOW GLOBAL VARIABLES')
-	variables = {}
-	for row in result.fetchall():
-		if row['Variable_name'] in MYSQL_VARS:
-			variables[row['Variable_name']] = row['Value']
+        global MYSQL_VARS
+        result = mysql_query(conn, 'SHOW GLOBAL VARIABLES')
+        variables = {}
+        for row in result.fetchall():
+                if row['Variable_name'] in MYSQL_VARS:
+                        variables[row['Variable_name']] = row['Value']
 
-	return variables
+        return variables
+
 
 def fetch_mysql_response_times(conn):
-	response_times = {}
-	try:
-		result = mysql_query(conn, """
-			SELECT *
-			FROM INFORMATION_SCHEMA.QUERY_RESPONSE_TIME
-			WHERE `time` != 'TOO LONG'
-			ORDER BY `time`
-		""")
-	except MySQLdb.OperationalError:
-		return {}
+        response_times = {}
+        try:
+                result = mysql_query(conn, """
+                        SELECT *
+                        FROM INFORMATION_SCHEMA.QUERY_RESPONSE_TIME
+                        WHERE `time` != 'TOO LONG'
+                        ORDER BY `time`
+                """)
+        except MySQLdb.OperationalError:
+                return {}
 
-	for i in range(1, 14):
-		row = result.fetchone()
+        for i in range(1, 14):
+                row = result.fetchone()
 
-		# fill in missing rows with zeros
-		if not row:
-			row = { 'count': 0, 'total': 0 }
+                # fill in missing rows with zeros
+                if not row:
+                        row = {'count': 0, 'total': 0}
 
-		response_times[i] = {
-			'time':  float(row['time']),
-			'count': int(row['count']),
-			'total': round(float(row['total']) * 1000000, 0),
-		}
+                response_times[i] = {
+                        'time':  float(row['time']),
+                        'count': int(row['count']),
+                        'total': round(float(row['total']) * 1000000, 0),
+                }
 
-	return response_times
+        return response_times
+
 
 def fetch_innodb_stats(conn):
-	global MYSQL_INNODB_STATUS_MATCHES, MYSQL_INNODB_STATUS_VARS
-	result = mysql_query(conn, 'SHOW ENGINE INNODB STATUS')
-	row    = result.fetchone()
-	status = row['Status']
-	stats  = dict.fromkeys(MYSQL_INNODB_STATUS_VARS.keys(), 0)
+        global MYSQL_INNODB_STATUS_MATCHES, MYSQL_INNODB_STATUS_VARS
+        result = mysql_query(conn, 'SHOW ENGINE INNODB STATUS')
+        row = result.fetchone()
+        status = row['Status']
+        stats = dict.fromkeys(MYSQL_INNODB_STATUS_VARS.keys(), 0)
 
-	for line in status.split("\n"):
-		line = line.strip()
-		row  = re.split(r' +', re.sub(r'[,;] ', ' ', line))
-		if line == '': continue
+        for line in status.split("\n"):
+                line = line.strip()
+                row = re.split(r' +', re.sub(r'[,;] ', ' ', line))
+                if line == '':
+                    continue
 
-		# ---TRANSACTION 124324402462, not started
-		# ---TRANSACTION 124324402468, ACTIVE 0 sec committing
-		if line.find("---TRANSACTION") != -1:
-			stats['current_transactions'] += 1
-			if line.find("ACTIVE") != -1:
-				stats['active_transactions'] += 1
-		# LOCK WAIT 228 lock struct(s), heap size 46632, 65 row lock(s), undo log entries 1
-		# 205 lock struct(s), heap size 30248, 37 row lock(s), undo log entries 1
-		elif line.find("lock struct(s)") != -1:
-			if line.find("LOCK WAIT") != -1:
-				stats['innodb_lock_structs'] += int(row[2])
-				stats['locked_transactions'] += 1
-			else:
-				stats['innodb_lock_structs'] += int(row[0])
-		else:
-			for match in MYSQL_INNODB_STATUS_MATCHES:
-				if line.find(match) == -1: continue
-				for key in MYSQL_INNODB_STATUS_MATCHES[match]:
-					value = MYSQL_INNODB_STATUS_MATCHES[match][key]
-					if type(value) is int:
-						stats[key] = int(row[value])
-					else:
-						stats[key] = value(row, stats)
-				break
+                # ---TRANSACTION 124324402462, not started
+                # ---TRANSACTION 124324402468, ACTIVE 0 sec committing
+                if line.find("---TRANSACTION") != -1:
+                        stats['current_transactions'] += 1
+                        if line.find("ACTIVE") != -1:
+                                stats['active_transactions'] += 1
+                # LOCK WAIT 228 lock struct(s), heap size 46632,
+                # 65 row lock(s), undo log entries 1
+                # 205 lock struct(s), heap size 30248, 37 row lock(s),
+                # undo log entries 1
+                elif line.find("lock struct(s)") != -1:
+                        if line.find("LOCK WAIT") != -1:
+                                stats['innodb_lock_structs'] += int(row[2])
+                                stats['locked_transactions'] += 1
+                        else:
+                                stats['innodb_lock_structs'] += int(row[0])
+                else:
+                        for match in MYSQL_INNODB_STATUS_MATCHES:
+                            if line.find(match) == -1:
+                                continue
+                            for key in MYSQL_INNODB_STATUS_MATCHES[match]:
+                                value = \
+                                    MYSQL_INNODB_STATUS_MATCHES[match][key]
+                                if type(value) is int:
+                                    stats[key] = int(row[value])
+                                else:
+                                    stats[key] = value(row, stats)
+                                break
 
-	return stats
+        return stats
+
 
 # Check if PENFORMANCE_SCHEMA is enabled
 def is_ps_enabled(conn):
-	result = mysql_query(conn, 'SHOW GLOBAL VARIABLES LIKE "performance_schema"')
-	row = result.fetchone()
-	if row['Value'] == 'ON':
-		return True
-	else:
-		return False
-	
+        result = mysql_query(conn,
+                             '''
+                             SHOW GLOBAL VARIABLES
+                             LIKE "performance_schema"
+                             ''')
+        row = result.fetchone()
+        if row['Value'] == 'ON':
+                return True
+        else:
+                return False
+
+
 def clean_string(digest):
-	clean_digest=str(digest)
-        clean_digest=re.sub(r'[^\x00-\x7F]+','_', clean_digest)
-	clean_digest=clean_digest.replace('`', '')
-        clean_digest=clean_digest.replace('\\', '')
-	clean_digest=clean_digest.replace('?', '')
-	clean_digest=clean_digest.replace(' ', '_')
-	clean_digest=clean_digest.replace(',', '_')
-	clean_digest=clean_digest.replace('(', '_')
-	clean_digest=clean_digest.replace(')', '_')
-	clean_digest=clean_digest.replace('.', '_')
-        clean_digest=re.sub(r'(__)', '',clean_digest)
-	clean_digest=re.sub('_$', '',clean_digest)
-	return clean_digest	
+        clean_digest = str(digest)
+        clean_digest = re.sub(r'[^\x00-\x7F]+', '_', clean_digest)
+        clean_digest = clean_digest.replace('`', '')
+        clean_digest = clean_digest.replace('\\', '')
+        clean_digest = clean_digest.replace('?', '')
+        clean_digest = clean_digest.replace(' ', '_')
+        clean_digest = clean_digest.replace(',', '_')
+        clean_digest = clean_digest.replace('(', '_')
+        clean_digest = clean_digest.replace(')', '_')
+        clean_digest = clean_digest.replace('.', '_')
+        clean_digest = re.sub(r'(__)', '', clean_digest)
+        clean_digest = re.sub('_$', '', clean_digest)
+        return clean_digest
 
-# http://www.markleith.co.uk/2011/04/18/monitoring-table-and-index-io-with-performance_schema/
-# http://www.markleith.co.uk/2012/07/04/mysql-performance-schema-statement-digests/
-#
-# 1) A high level overview of the statements like Query Analysis, sorted by those queries with the highest latency
-
-# 2) List all normalized statements that use temporary tables ordered by number of on disk temporary tables descending first, then by the number of memory tables.
-# 3) List all normalized statements that have done sorts, ordered by sort_merge_passes, sort_scans and sort_rows, all descending.
-# 4) List all normalized statements that use have done a full table scan ordered by the percentage of times a full scan was done, then by the number of times the statement executed
-# 5) List all normalized statements that have raised errors or warnings.
 
 # Connections per account
 def fetch_connections_per_account(conn):
-	queries = {}
-	try:
-		result = mysql_query(conn, """
-				SELECT user,host,current_connections,total_connections
-				FROM performance_schema.accounts
-				LIMIT 10;
-			""")
-		for row in result.fetchall():
-			# Clean the digest string 
-                        clean_digest=str(row['user'])+'_'+str(row['host'])
-			queries["current_connections_per_account_"+clean_digest] = row['current_connections'] 
-			queries["total_connections_per_account_"+clean_digest] = row['total_connections'] 
+        queries = {}
+        try:
+            result = mysql_query(conn,
+                                 """
+                                 SELECT
+                                 user,host,current_connections,
+                                 total_connections
+                                 FROM
+                                 performance_schema.accounts
+                                 LIMIT 10
+                                """)
+            for row in result.fetchall():
+                # Clean the digest string
+                clean_digest = str(row['user'])+'_'+str(row['host'])
+                queries["current_connections_per_account_"+clean_digest] = \
+                    row['current_connections']
+                queries["total_connections_per_account_"+clean_digest] = \
+                    row['total_connections']
 
-	except MySQLdb.OperationalError:
-		return {}
+        except MySQLdb.OperationalError:
+                return {}
 
-	return queries
+        return queries
 
 
 # Connections per host
 def fetch_connections_per_host(conn):
-	queries = {}
-	try:
-		result = mysql_query(conn, """
-				SELECT host,current_connections,total_connections
-				FROM performance_schema.hosts
-				LIMIT 10;
-			""")
-		for row in result.fetchall():
-			# Clean the digest string 
-                        clean_digest=str(row['host'])
-			queries["current_connections_per_host_"+clean_digest] = row['current_connections'] 
-			queries["total_connections_per_host_"+clean_digest] = row['total_connections'] 
+    queries = {}
+    try:
+        result = mysql_query(conn, """
+                        SELECT
+                        host,current_connections,
+                        total_connections
+                        FROM performance_schema.hosts
+                        LIMIT 10
+                """)
+        for row in result.fetchall():
+            # Clean the digest string
+            clean_digest = str(row['host'])
+            queries["current_connections_per_host_"+clean_digest] = \
+                row['current_connections']
+            queries["total_connections_per_host_"+clean_digest] = \
+                row['total_connections']
 
-	except MySQLdb.OperationalError:
-		return {}
+    except MySQLdb.OperationalError:
+            return {}
 
-	return queries
+    return queries
+
 
 # Connections per user
 def fetch_connections_per_user(conn):
-	queries = {}
-	try:
-		result = mysql_query(conn, """
-				SELECT user,current_connections,total_connections
-				FROM performance_schema.users
-				LIMIT 10;
-			""")
-		for row in result.fetchall():
-			# Clean the digest string 
-                        clean_digest=str(row['user'])
-			queries["current_connections_per_user_"+clean_digest] = row['current_connections'] 
-			queries["total_connections_per_user_"+clean_digest] = row['total_connections'] 
+    queries = {}
+    try:
+        result = mysql_query(conn, """
+                        SELECT
+                        user,current_connections,
+                        total_connections
+                        FROM performance_schema.users
+                        LIMIT 10
+                """)
+        for row in result.fetchall():
+            # Clean the digest string
+            clean_digest = str(row['user'])
+            queries["current_connections_per_user_"+clean_digest] = \
+                row['current_connections']
+            queries["total_connections_per_user_"+clean_digest] = \
+                row['total_connections']
 
-	except MySQLdb.OperationalError:
-		return {}
+    except MySQLdb.OperationalError:
+            return {}
 
-	return queries
+    return queries
+
 
 # number of reads/changed per index
 def fetch_number_of_reads_per_index(conn):
-	queries = {}
-	try:
-		result = mysql_query(conn, """
-				SELECT pst.object_schema AS table_schema, 
-				       pst.object_name AS table_name, 
-				       psi.object_name AS index_name, 
-				       pst.count_read AS rows_read, 
-				       pst.count_write AS rows_changed
-				  FROM performance_schema.table_io_waits_summary_by_table AS pst
-				  LEFT JOIN performance_schema.table_io_waits_summary_by_index_usage AS psi 
-				    ON pst.object_schema = psi.object_schema AND pst.object_name = psi.object_name
-				   AND psi.index_name IS NOT NULL
-				 WHERE pst.sum_timer_wait > 0
-				 GROUP BY pst.object_schema, pst.object_name
-				 ORDER BY pst.sum_timer_wait DESC
-				LIMIT 10;
+    queries = {}
+    try:
+        result = mysql_query(conn, """
+                   SELECT pst.object_schema AS table_schema,
+                          pst.object_name AS table_name,
+                          psi.object_name AS index_name,
+                          pst.count_read AS rows_read,
+                          pst.count_write AS rows_changed
+                     FROM
+                     performance_schema.table_io_waits_summary_by_table AS pst
+                     LEFT JOIN
+                     performance_schema.table_io_waits_summary_by_index_usage
+                     AS psi
+                       ON pst.object_schema = psi.object_schema AND
+                       pst.object_name = psi.object_name
+                      AND psi.index_name IS NOT NULL
+                    WHERE pst.sum_timer_wait > 0
+                    GROUP BY pst.object_schema, pst.object_name
+                    ORDER BY pst.sum_timer_wait DESC
+                   LIMIT 10
+                """)
+        for row in result.fetchall():
+            # Clean the digest string
+            clean_digest = clean_string('{}_{}_{}'.
+                                        format(row['table_schema'],
+                                               row['table_name'],
+                                               row['index_name']))
+            queries["number_of_rows_reads_per_index_"+clean_digest] = \
+                row['rows_read']
+            queries["number_of_rows_changed_per_index_"+clean_digest] = \
+                row['rows_changed']
 
-			""")
-		for row in result.fetchall():
-			# Clean the digest string 
-                        clean_digest=clean_string(row['table_schema']+'_'+row['table_name']+'_'+row['index_name'])
-			queries["number_of_rows_reads_per_index_"+clean_digest] = row['rows_read'] 
-			queries["number_of_rows_changed_per_index_"+clean_digest] = row['rows_changed'] 
+    except MySQLdb.OperationalError:
+            return {}
 
-	except MySQLdb.OperationalError:
-		return {}
+    return queries
 
-	return queries
 
 # Indexes not being used
 def fetch_indexes_not_being_used(conn):
-	queries = {}
-	try:
-		result = mysql_query(conn, """
-				SELECT object_schema,
-				object_name,
-				index_name
-				FROM performance_schema.table_io_waits_summary_by_index_usage
-				WHERE index_name IS NOT NULL
-				AND count_star = 0
-				AND object_schema != 'mysql'
-				ORDER BY object_schema, object_name
-				LIMIT 10;
-			""")
-		for row in result.fetchall():
-			# Clean the digest string 
-                        clean_digest=clean_string(row['object_schema']+'_'+row['object_name']+'_'+row['index_name'])
-			queries["index_not_being_used_"+clean_digest] = 1 
+        queries = {}
+        try:
+            result = mysql_query(conn, """
+                        SELECT object_schema,
+                        object_name,
+                        index_name
+                        FROM
+                        performance_schema.table_io_waits_summary_by_index_usage
+                        WHERE index_name IS NOT NULL
+                        AND count_star = 0
+                        AND object_schema != 'mysql'
+                        ORDER BY object_schema, object_name
+                        LIMIT 10;
+                    """)
+            for row in result.fetchall():
+                # Clean the digest string
+                clean_digest = clean_string('{}_{}_{}'.
+                                            format(row['object_schema'],
+                                                   row['object_name'],
+                                                   row['index_name']))
+                queries["index_not_being_used_"+clean_digest] = 1
 
-	except MySQLdb.OperationalError:
-		return {}
+        except MySQLdb.OperationalError:
+                return {}
 
-	return queries
-
+        return queries
 
 
 # Queries that raised errors
 def fetch_warning_error_queries(conn):
-	queries = {}
-	try:
-		# Get the slow queries
-		result = mysql_query(conn, """
-				SELECT DIGEST_TEXT AS query,
-				COUNT_STAR AS exec_count,
-				SUM_ERRORS AS errors,
-				SUM_WARNINGS AS warnings
-				FROM performance_schema.events_statements_summary_by_digest
-				WHERE SUM_ERRORS > 0
-				OR SUM_WARNINGS > 0
-				ORDER BY SUM_ERRORS DESC, SUM_WARNINGS DESC
-				LIMIT 10;
-			""")
-		for row in result.fetchall():
-			# Clean the digest string 
-                        clean_digest=clean_string(row['query'])
-			queries["exec_count_"+clean_digest] = row['exec_count']
-			queries["errors_"+clean_digest] = row['errors']
-			queries["warnings_"+clean_digest] = row['warnings']
+    queries = {}
+    try:
+        # Get the slow queries
+        result = mysql_query(conn, """
+                        SELECT
+                        DIGEST_TEXT AS query,
+                        COUNT_STAR AS exec_count,
+                        SUM_ERRORS AS errors,
+                        SUM_WARNINGS AS warnings
+                        FROM
+                        performance_schema.events_statements_summary_by_digest
+                        WHERE SUM_ERRORS > 0
+                        OR SUM_WARNINGS > 0
+                        ORDER BY SUM_ERRORS DESC, SUM_WARNINGS DESC
+                        LIMIT 10;
+                """)
+        for row in result.fetchall():
+                # Clean the digest string
+                clean_digest = clean_string(row['query'])
+                queries["exec_count_"+clean_digest] = row['exec_count']
+                queries["errors_"+clean_digest] = row['errors']
+                queries["warnings_"+clean_digest] = row['warnings']
 
-	except MySQLdb.OperationalError:
-		return {}
+    except MySQLdb.OperationalError:
+            return {}
 
-	return queries
+    return queries
 
-# Slow queries, response time, rows scanned, rows returned 
+
+# Slow queries, response time, rows scanned, rows returned
 def fetch_slow_queries(conn):
-	slow_queries = {}
-	try:
-		# Get the slow queries
-		result = mysql_query(conn, """
-				SELECT DIGEST_TEXT AS query,
-				COUNT_STAR AS exec_count,
-				round(SUM_TIMER_WAIT/1000000000) AS exec_time_total_ms,
-				round(MAX_TIMER_WAIT/1000000000) AS exec_time_max_ms,
-				round(AVG_TIMER_WAIT/1000000000) AS exec_time_avg_ms,
-				SUM_ROWS_SENT AS rows_sent_sum,
-				ROUND(SUM_ROWS_SENT / COUNT_STAR) AS rows_sent_avg,
-				SUM_ROWS_EXAMINED AS rows_scanned
-				FROM performance_schema.events_statements_summary_by_digest
-				WHERE DIGEST_TEXT NOT LIKE 'null'
-				ORDER BY SUM_TIMER_WAIT DESC LIMIT 10;
-			""")
-		for row in result.fetchall():
-			# Clean the digest string
-                        clean_digest=clean_string(row['query'])
-			slow_queries["exec_count_"+clean_digest] = row['exec_count']
-			slow_queries["exec_time_total_"+clean_digest] = row['exec_time_total_ms']
-			slow_queries["exec_time_max_"+clean_digest] = row['exec_time_max_ms']
-			slow_queries["exec_time_avg_ms_"+clean_digest] = row['exec_time_avg_ms']
-			slow_queries["rows_sent_sum_"+clean_digest] = row['rows_sent_sum']
-			slow_queries["rows_sent_avg_"+clean_digest] = row['rows_sent_avg']
-			slow_queries["rows_scanned_"+clean_digest] = row['rows_scanned']
+    slow_queries = {}
+    try:
+        # Get the slow queries
+        result = mysql_query(conn, """
+                        SELECT DIGEST_TEXT AS query,
+                        COUNT_STAR AS exec_count,
+                        round(SUM_TIMER_WAIT/1000000000) AS exec_time_total_ms,
+                        round(MAX_TIMER_WAIT/1000000000) AS exec_time_max_ms,
+                        round(AVG_TIMER_WAIT/1000000000) AS exec_time_avg_ms,
+                        SUM_ROWS_SENT AS rows_sent_sum,
+                        ROUND(SUM_ROWS_SENT / COUNT_STAR) AS rows_sent_avg,
+                        SUM_ROWS_EXAMINED AS rows_scanned
+                        FROM
+                        performance_schema.events_statements_summary_by_digest
+                        WHERE DIGEST_TEXT NOT LIKE 'null'
+                        ORDER BY SUM_TIMER_WAIT DESC LIMIT 10;
+                """)
+        for row in result.fetchall():
+                # Clean the digest string
+                clean_digest = clean_string(row['query'])
+                slow_queries["exec_count_"+clean_digest] = \
+                    row['exec_count']
+                slow_queries["exec_time_total_"+clean_digest] = \
+                    row['exec_time_total_ms']
+                slow_queries["exec_time_max_"+clean_digest] = \
+                    row['exec_time_max_ms']
+                slow_queries["exec_time_avg_ms_"+clean_digest] = \
+                    row['exec_time_avg_ms']
+                slow_queries["rows_sent_sum_"+clean_digest] = \
+                    row['rows_sent_sum']
+                slow_queries["rows_sent_avg_"+clean_digest] = \
+                    row['rows_sent_avg']
+                slow_queries["rows_scanned_"+clean_digest] = \
+                    row['rows_scanned']
 
-	except MySQLdb.OperationalError:
-		return {}
+    except MySQLdb.OperationalError:
+            return {}
 
-	return slow_queries
+    return slow_queries
 
+
+# Slow queries excluding table names,
+# response time, rows scanned, rows returned
+def fetch_slow_queries_excluding_table_names(conn):
+    slow_queries = {}
+    try:
+        # Get the slow queries
+        result = mysql_query(conn, """
+                                SELECT
+                                query,
+                                sum(exec_count) AS exec_count,
+                                sum(exec_time_total_ms) as exec_time_total_ms,
+                                sum(exec_time_max_ms) as exec_time_max_ms,
+                                sum(exec_time_avg_ms) as exec_time_avg_ms,
+                                sum(rows_sent_sum) as rows_sent_sum,
+                                sum(rows_sent_avg) as rows_sent_avg,
+                                sum(rows_scanned) as rows_scanned
+                                FROM
+                                (SELECT
+                                    if(DIGEST_TEXT REGEXP '^SELECT.*WHERE.*',
+                                       concat(substring_index(DIGEST_TEXT,'FROM',1),
+                                              ' FROM <TABLE> WHERE ',
+                                              substring_index(DIGEST_TEXT,
+                                              'WHERE',-1)),
+                                    if(DIGEST_TEXT REGEXP '^SELECT.*',
+                                       concat(substring_index(DIGEST_TEXT,'FROM',1),
+                                              ' FROM <TABLE> '),
+                                    if(DIGEST_TEXT REGEXP '^INSERT.*',
+                                       concat(substring_index(DIGEST_TEXT,'INTO',1),
+                                              ' INTO <TABLE> ',
+                                              substring_index(DIGEST_TEXT,
+                                              '\` \( \`',-1)),
+                                    if(DIGEST_TEXT REGEXP '^UPDATE.*',
+                                       concat(' UPDATE <TABLE> ',
+                                              substring_index(DIGEST_TEXT,'SET',-1)),
+                                              DIGEST_TEXT
+                                      )
+                                      )
+                                      )
+                                      ) as query,
+                                        COUNT_STAR AS exec_count,
+                                        round(SUM_TIMER_WAIT/1000000000)
+                                            AS exec_time_total_ms,
+                                        round(MAX_TIMER_WAIT/1000000000)
+                                            AS exec_time_max_ms,
+                                        round(AVG_TIMER_WAIT/1000000000)
+                                            AS exec_time_avg_ms,
+                                        SUM_ROWS_SENT AS rows_sent_sum,
+                                        ROUND(SUM_ROWS_SENT / COUNT_STAR)
+                                            AS rows_sent_avg,
+                                        SUM_ROWS_EXAMINED AS rows_scanned
+                                FROM
+                                performance_schema.events_statements_summary_by_digest
+                                WHERE DIGEST_TEXT NOT LIKE 'null'
+                                ORDER BY SUM_TIMER_WAIT DESC LIMIT 100
+                                ) as a
+                                group by query
+                """)
+        for row in result.fetchall():
+                # Clean the digest string
+                clean_digest = clean_string(row['query'])
+                slow_queries["exec_count_"+clean_digest] = \
+                    row['exec_count']
+                slow_queries["exec_time_total_"+clean_digest] = \
+                    row['exec_time_total_ms']
+                slow_queries["exec_time_max_"+clean_digest] = \
+                    row['exec_time_max_ms']
+                slow_queries["exec_time_avg_ms_"+clean_digest] = \
+                    row['exec_time_avg_ms']
+                slow_queries["rows_sent_sum_"+clean_digest] = \
+                    row['rows_sent_sum']
+                slow_queries["rows_sent_avg_"+clean_digest] = \
+                    row['rows_sent_avg']
+                slow_queries["rows_scanned_"+clean_digest] = \
+                    row['rows_scanned']
+
+    except MySQLdb.OperationalError:
+            return {}
+
+    return slow_queries
 
 
 def log_verbose(msg):
-	if MYSQL_CONFIG['Verbose'] == False:
-		return
-	collectd.info('mysql plugin: %s' % msg)
+        if MYSQL_CONFIG['Verbose'] == False:
+                return
+        collectd.info('mysql plugin: %s' % msg)
+
 
 def dispatch_value(prefix, key, value, type, type_instance=None):
-	if not type_instance:
-		type_instance = key
+        if not type_instance:
+                type_instance = key
 
-	log_verbose('Sending value: %s/%s=%s' % (prefix, type_instance, value))
-	if not value:
-		return
-	value = int(value) # safety check
+        log_verbose('Sending value: %s/%s=%s' % (prefix, type_instance, value))
+        if not value:
+                return
+        value = int(value)  # safety check
 
-	val               = collectd.Values(plugin='mysql', plugin_instance=prefix)
-	val.type          = type
-	val.type_instance = type_instance
-	val.values        = [value]
-	val.dispatch()
+        val = collectd.Values(plugin='mysql', plugin_instance=prefix)
+        val.type = type
+        val.type_instance = type_instance
+        val.values = [value]
+        val.dispatch()
+
 
 def configure_callback(conf):
-	global MYSQL_CONFIG
-	for node in conf.children:
-		if node.key in MYSQL_CONFIG:
-			MYSQL_CONFIG[node.key] = node.values[0]
+        global MYSQL_CONFIG
+        for node in conf.children:
+                if node.key in MYSQL_CONFIG:
+                        MYSQL_CONFIG[node.key] = node.values[0]
 
-	MYSQL_CONFIG['Port']    = int(MYSQL_CONFIG['Port'])
-	MYSQL_CONFIG['Verbose'] = bool(MYSQL_CONFIG['Verbose'])
+        MYSQL_CONFIG['Port'] = int(MYSQL_CONFIG['Port'])
+        MYSQL_CONFIG['Verbose'] = bool(MYSQL_CONFIG['Verbose'])
+
 
 def read_callback():
-	global MYSQL_STATUS_VARS
-	conn = get_mysql_conn()
+        global MYSQL_STATUS_VARS
+        conn = get_mysql_conn()
 
-	mysql_status = fetch_mysql_status(conn)
-	for key in mysql_status:
-		if mysql_status[key] == '': mysql_status[key] = 0
+        mysql_status = fetch_mysql_status(conn)
+        for key in mysql_status:
+                if mysql_status[key] == '': mysql_status[key] = 0
 
-		# collect anything beginning with Com_/Handler_ as these change
-		# regularly between  mysql versions and this is easier than a fixed
-		# list
-		if key.split('_', 2)[0] in ['Com', 'Handler']:
-			ds_type = 'counter'
-		elif key in MYSQL_STATUS_VARS:
-			ds_type = MYSQL_STATUS_VARS[key]
-		else:
-			continue
+                # collect anything beginning with Com_/Handler_ as these change
+                # regularly between  mysql versions and this is easier than a fixed
+                # list
+                if key.split('_', 2)[0] in ['Com', 'Handler']:
+                        ds_type = 'counter'
+                elif key in MYSQL_STATUS_VARS:
+                        ds_type = MYSQL_STATUS_VARS[key]
+                else:
+                        continue
 
-		dispatch_value('status', key, mysql_status[key], ds_type)
+                dispatch_value('status', key, mysql_status[key], ds_type)
 
-	mysql_variables = fetch_mysql_variables(conn)
-	for key in mysql_variables:
-		dispatch_value('variables', key, mysql_variables[key], 'gauge')
+        mysql_variables = fetch_mysql_variables(conn)
+        for key in mysql_variables:
+                dispatch_value('variables', key, mysql_variables[key], 'gauge')
 
-	mysql_master_status = fetch_mysql_master_stats(conn)
-	for key in mysql_master_status:
-		dispatch_value('master', key, mysql_master_status[key], 'gauge')
+        mysql_master_status = fetch_mysql_master_stats(conn)
+        for key in mysql_master_status:
+                dispatch_value('master', key, mysql_master_status[key], 'gauge')
 
-	mysql_states = fetch_mysql_process_states(conn)
-	for key in mysql_states:
-		dispatch_value('state', key, mysql_states[key], 'gauge')
+        mysql_states = fetch_mysql_process_states(conn)
+        for key in mysql_states:
+                dispatch_value('state', key, mysql_states[key], 'gauge')
 
-	slave_status = fetch_mysql_slave_stats(conn)
-	for key in slave_status:
-		dispatch_value('slave', key, slave_status[key], 'gauge')
+        slave_status = fetch_mysql_slave_stats(conn)
+        for key in slave_status:
+                dispatch_value('slave', key, slave_status[key], 'gauge')
 
-	response_times = fetch_mysql_response_times(conn)
-	for key in response_times:
-		dispatch_value('response_time_total', str(key), response_times[key]['total'], 'counter')
-		dispatch_value('response_time_count', str(key), response_times[key]['count'], 'counter')
+        response_times = fetch_mysql_response_times(conn)
+        for key in response_times:
+                dispatch_value('response_time_total', str(key), response_times[key]['total'], 'counter')
+                dispatch_value('response_time_count', str(key), response_times[key]['count'], 'counter')
 
-	innodb_status = fetch_innodb_stats(conn)
-	for key in MYSQL_INNODB_STATUS_VARS:
-		if key not in innodb_status: continue
-		dispatch_value('innodb', key, innodb_status[key], MYSQL_INNODB_STATUS_VARS[key])
+        innodb_status = fetch_innodb_stats(conn)
+        for key in MYSQL_INNODB_STATUS_VARS:
+                if key not in innodb_status: continue
+                dispatch_value('innodb', key, innodb_status[key], MYSQL_INNODB_STATUS_VARS[key])
 
-	# Performance_Schema metrics
-	if is_ps_enabled(conn):
-		slow_queries = fetch_slow_queries(conn)
-		for key in slow_queries:
-			dispatch_value('slow_query', key, slow_queries[key], 'gauge')
-	
-		queries = fetch_warning_error_queries(conn)
-		for key in queries:
-			dispatch_value('warn_err_query', key, queries[key], 'gauge')
-	
-		queries = fetch_indexes_not_being_used(conn)
-		for key in queries:
-			dispatch_value('indexes_not_being_used', key, queries[key], 'gauge')
+        # Performance_Schema metrics
+        if is_ps_enabled(conn):
+                queries = fetch_slow_queries(conn)
+                for key in queries:
+                        dispatch_value('slow_query', key, queries[key], 'gauge')
 
-		queries = fetch_number_of_reads_per_index(conn)
-		for key in queries:
-			dispatch_value('number_of_reads_per_index', key, queries[key], 'gauge')
+                queries = fetch_slow_queries_excluding_table_names(conn)
+                for key in queries:
+                        dispatch_value('slow_query_excluding_table_names', key, queries[key], 'gauge')
+        
+                queries = fetch_warning_error_queries(conn)
+                for key in queries:
+                        dispatch_value('warn_err_query', key, queries[key], 'gauge')
+        
+                queries = fetch_indexes_not_being_used(conn)
+                for key in queries:
+                        dispatch_value('indexes_not_being_used', key, queries[key], 'gauge')
 
-		queries=fetch_connections_per_user(conn)
-		for key in queries:
-			dispatch_value('connections_per_user', key, queries[key], 'gauge')
+#               queries = fetch_number_of_reads_per_index(conn)
+#               for key in queries:
+#                       dispatch_value('number_of_reads_per_index', key, queries[key], 'gauge')
 
-		queries=fetch_connections_per_host(conn)
-		for key in queries:
-			dispatch_value('connections_per_host', key, queries[key], 'gauge')
+                queries=fetch_connections_per_user(conn)
+                for key in queries:
+                        dispatch_value('connections_per_user', key, queries[key], 'gauge')
 
-		queries=fetch_connections_per_account(conn)
-		for key in queries:
-			dispatch_value('connections_per_account', key, queries[key], 'gauge')
+                queries=fetch_connections_per_host(conn)
+                for key in queries:
+                        dispatch_value('connections_per_host', key, queries[key], 'gauge')
+
+                queries=fetch_connections_per_account(conn)
+                for key in queries:
+                        dispatch_value('connections_per_account', key, queries[key], 'gauge')
 
 
 collectd.register_read(read_callback)
