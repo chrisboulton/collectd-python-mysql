@@ -514,7 +514,8 @@ def clean_string(digest):
         clean_digest = clean_digest.replace('(', '_')
         clean_digest = clean_digest.replace(')', '_')
         clean_digest = clean_digest.replace('.', '_')
-        clean_digest = re.sub(r'(__)', '', clean_digest)
+        clean_digest = clean_digest.replace('=', '_')
+        clean_digest = re.sub(r'(_)+', '_', clean_digest)
         clean_digest = re.sub('_$', '', clean_digest)
         return clean_digest
 
@@ -760,19 +761,19 @@ def fetch_slow_queries_excluding_table_names(conn):
                                 (SELECT
                                     if(DIGEST_TEXT REGEXP '^SELECT.*WHERE.*',
                                        concat(substring_index(DIGEST_TEXT,'FROM',1),
-                                              ' FROM <TABLE> WHERE ',
+                                              ' FROM TABLE WHERE ',
                                               substring_index(DIGEST_TEXT,
                                               'WHERE',-1)),
                                     if(DIGEST_TEXT REGEXP '^SELECT.*',
                                        concat(substring_index(DIGEST_TEXT,'FROM',1),
-                                              ' FROM <TABLE> '),
+                                              ' FROM TABLE '),
                                     if(DIGEST_TEXT REGEXP '^INSERT.*',
                                        concat(substring_index(DIGEST_TEXT,'INTO',1),
-                                              ' INTO <TABLE> ',
+                                              ' INTO TABLE ',
                                               substring_index(DIGEST_TEXT,
                                               '\` \( \`',-1)),
                                     if(DIGEST_TEXT REGEXP '^UPDATE.*',
-                                       concat(' UPDATE <TABLE> ',
+                                       concat(' UPDATE TABLE ',
                                               substring_index(DIGEST_TEXT,'SET',-1)),
                                               DIGEST_TEXT
                                       )
@@ -903,15 +904,15 @@ def read_callback():
         if is_ps_enabled(conn):
                 queries = fetch_slow_queries(conn)
                 for key in queries:
-                        dispatch_value('slow_query', key, queries[key], 'gauge')
+                        dispatch_value('slow_query', key, queries[key], 'counter')
 
                 queries = fetch_slow_queries_excluding_table_names(conn)
                 for key in queries:
-                        dispatch_value('slow_query_excluding_table_names', key, queries[key], 'gauge')
+                        dispatch_value('slow_query_excluding_table_names', key, queries[key], 'counter')
         
                 queries = fetch_warning_error_queries(conn)
                 for key in queries:
-                        dispatch_value('warn_err_query', key, queries[key], 'gauge')
+                        dispatch_value('warn_err_query', key, queries[key], 'counter')
         
 #                queries = fetch_indexes_not_being_used(conn)
 #                for key in queries:
