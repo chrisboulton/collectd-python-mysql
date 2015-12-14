@@ -908,7 +908,7 @@ def read_callback():
 
                 queries = fetch_slow_queries_excluding_table_names(conn)
                 for key in queries:
-                        dispatch_value('slow_query_excluding_table_names', key, queries[key], 'counter')
+                        dispatch_value('slow_query_excluding_table_names', "{}-{}".format(binascii.crc32(key) % 100, key) , queries[key], 'counter')
         
                 queries = fetch_warning_error_queries(conn)
                 for key in queries:
