@@ -26,6 +26,7 @@
 import collectd
 import re
 import MySQLdb
+import binascii
 
 MYSQL_CONFIG = {
     'Host': 'localhost',
@@ -326,7 +327,7 @@ def fetch_mysql_status(conn):
                     int(status['Innodb_lsn_current']) - \
                     int(status['Innodb_lsn_flushed'])
 
-        return status
+    return status
 
 
 def fetch_mysql_master_stats(conn):
