@@ -35,7 +35,7 @@ You should then configure the MySQL plugin:
 			HeartbeatTable "percona.heartbeat" (if using pt-heartbeat to track slave lag)
 			Verbose false (default: false)
 		</Module>
-	</Python>
+	</Plugin>
 
 ## Metrics
 
