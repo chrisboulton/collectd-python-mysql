@@ -312,17 +312,17 @@ def fetch_mysql_status(conn):
         status[row['Variable_name']] = row['Value']
 
         # calculate the number of unpurged txns from existing variables
-        if 'Innodb_max_trx_id' in status:
+        if 'Innodb_max_trx_id' in status and 'Innodb_purge_trx_id' in status:
                 status['Innodb_unpurged_txns'] = \
                     int(status['Innodb_max_trx_id']) - \
                     int(status['Innodb_purge_trx_id'])
 
-        if 'Innodb_lsn_last_checkpoint' in status:
+        if 'Innodb_lsn_last_checkpoint' in status and 'Innodb_lsn_current' in status:
                 status['Innodb_uncheckpointed_bytes'] = \
                     int(status['Innodb_lsn_current']) - \
                     int(status['Innodb_lsn_last_checkpoint'])
 
-        if 'Innodb_lsn_flushed' in status:
+        if 'Innodb_lsn_flushed' in status and 'Innodb_lsn_current' in status:
                 status['Innodb_unflushed_log'] = \
                     int(status['Innodb_lsn_current']) - \
                     int(status['Innodb_lsn_flushed'])
@@ -479,13 +479,17 @@ def fetch_innodb_stats(conn):
                             if line.find(match) == -1:
                                 continue
                             for key in MYSQL_INNODB_STATUS_MATCHES[match]:
-                                value = \
-                                    MYSQL_INNODB_STATUS_MATCHES[match][key]
-                                if type(value) is int:
-                                    stats[key] = int(row[value])
-                                else:
-                                    stats[key] = value(row, stats)
-                                break
+                                try:
+                                    value = \
+                                        MYSQL_INNODB_STATUS_MATCHES[match][key]
+                                    if type(value) is int:
+                                        stats[key] = int(row[value])
+                                    else:
+                                        stats[key] = value(row, stats)
+                                    break
+                                except Exception, e:
+                                    log_verbose(Exception)
+                                    log_verbose(e)
 
         return stats
 
@@ -892,9 +896,10 @@ def read_callback():
                 dispatch_value('slave', key, slave_status[key], 'gauge')
 
         response_times = fetch_mysql_response_times(conn)
-        for key in response_times:
-                dispatch_value('response_time_total', str(key), response_times[key]['total'], 'counter')
-                dispatch_value('response_time_count', str(key), response_times[key]['count'], 'counter')
+        if response_times != {}:
+            for key in response_times:
+                    dispatch_value('response_time_total', str(key), response_times[key]['total'], 'counter')
+                    dispatch_value('response_time_count', str(key), response_times[key]['count'], 'counter')
 
         innodb_status = fetch_innodb_stats(conn)
         for key in MYSQL_INNODB_STATUS_VARS:
