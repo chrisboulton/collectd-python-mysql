@@ -322,5 +322,17 @@ For versions of MySQL with support for it and where enabled, `INFORMATION_SCHEMA
     response_time_total.14
     response_time_count.14
 
+### Added support for PERFORMANCE_SCHEMA metrics
+If Performance_schema is enabled you will get the following metrics as well.
+
+    Number of connections per Account (host-user) - Total and current
+    Number of connections per User - Total and current
+    Number of connections per Host - Total and current
+    Number of rows read per index - schema, table, index name, rows read
+    Indexes not being used (didn't get any read) - schema, table, index_name
+    Queries that raised errors/warnings - Query, number of executions, errors, warnings
+    Slow queries - Query, number of executions, execution time (total,max,avg), rows sent (total, avg), scanned rows
+    Added slow queries excluding table names. Very useful when you have different table with same 'schema'.
+
 ## License
 MIT (http://www.opensource.org/licenses/mit-license.php)
