@@ -150,6 +150,41 @@ MYSQL_STATUS_VARS = {
 	'Threads_created': 'counter',
 	'Threads_running': 'gauge',
 	'Uptime': 'gauge',
+	'wsrep_apply_oooe': 'gauge',
+	'wsrep_apply_oool': 'gauge',
+	'wsrep_apply_window': 'gauge',
+	'wsrep_causal_reads': 'gauge',
+	'wsrep_cert_deps_distance': 'gauge',
+	'wsrep_cert_index_size': 'gauge',
+	'wsrep_cert_interval': 'gauge',
+	'wsrep_cluster_size': 'gauge',
+	'wsrep_commit_oooe': 'gauge',
+	'wsrep_commit_oool': 'gauge',
+	'wsrep_commit_window': 'gauge',
+	'wsrep_flow_control_paused': 'gauge',
+	'wsrep_flow_control_paused_ns': 'counter',
+	'wsrep_flow_control_recv': 'counter',
+	'wsrep_flow_control_sent': 'counter',
+	'wsrep_local_bf_aborts': 'counter',
+	'wsrep_local_cert_failures': 'counter',
+	'wsrep_local_commits': 'counter',
+	'wsrep_local_recv_queue': 'gauge',
+	'wsrep_local_recv_queue_avg': 'gauge',
+	'wsrep_local_recv_queue_max': 'gauge',
+	'wsrep_local_recv_queue_min': 'gauge',
+	'wsrep_local_replays': 'gauge',
+	'wsrep_local_send_queue': 'gauge',
+	'wsrep_local_send_queue_avg': 'gauge',
+	'wsrep_local_send_queue_max': 'gauge',
+	'wsrep_local_send_queue_min': 'gauge',
+	'wsrep_received': 'counter',
+	'wsrep_received_bytes': 'counter',
+	'wsrep_repl_data_bytes': 'counter',
+	'wsrep_repl_keys': 'counter',
+	'wsrep_repl_keys_bytes': 'counter',
+	'wsrep_repl_other_bytes': 'counter',
+	'wsrep_replicated': 'counter',
+	'wsrep_replicated_bytes': 'counter',
 }
 
 MYSQL_VARS = [
@@ -459,7 +494,10 @@ def dispatch_value(prefix, key, value, type, type_instance=None):
 	log_verbose('Sending value: %s/%s=%s' % (prefix, type_instance, value))
 	if not value:
 		return
-	value = int(value) # safety check
+	try:
+		value = int(value)
+	except ValueError:
+		value = float(value)
 
 	val               = collectd.Values(plugin='mysql', plugin_instance=prefix)
 	val.type          = type
