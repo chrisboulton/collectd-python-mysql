@@ -230,6 +230,8 @@ MYSQL_PROCESS_STATES = {
 	'statistics': 0,
 	'updating': 0,
 	'writing_to_net': 0,
+	'creating_table': 0,
+	'opening_tables': 0,
 }
 
 MYSQL_INNODB_STATUS_VARS = {
@@ -307,7 +309,7 @@ MYSQL_INNODB_STATUS_MATCHES = {
 	# --Thread 139954487744256 has waited at dict0dict.cc line 472 for 0.0000 seconds the semaphore:
 	'seconds the semaphore': {
 		'innodb_sem_waits': lambda row, stats: stats['innodb_sem_waits'] + 1,
-		'innodb_sem_wait_time_ms': lambda row, stats: int(row[9]) * 1000,
+		'innodb_sem_wait_time_ms': lambda row, stats: int(float(row[9]) * 1000),
 	},
 	# mysql tables in use 1, locked 1
 	'mysql tables in use': {
@@ -562,3 +564,5 @@ def read_callback():
 
 collectd.register_read(read_callback)
 collectd.register_config(configure_callback)
+
+# vim:noexpandtab ts=8 sw=8 sts=8
