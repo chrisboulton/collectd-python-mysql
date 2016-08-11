@@ -307,7 +307,7 @@ MYSQL_INNODB_STATUS_MATCHES = {
 	# --Thread 139954487744256 has waited at dict0dict.cc line 472 for 0.0000 seconds the semaphore:
 	'seconds the semaphore': {
 		'innodb_sem_waits': lambda row, stats: stats['innodb_sem_waits'] + 1,
-		'innodb_sem_wait_time_ms': lambda row, stats: int(row[9]) * 1000,
+		'innodb_sem_wait_time_ms': lambda row, stats: float(row[9]) * 1000,
 	},
 	# mysql tables in use 1, locked 1
 	'mysql tables in use': {
