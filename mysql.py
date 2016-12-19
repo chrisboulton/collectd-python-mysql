@@ -483,7 +483,10 @@ def fetch_innodb_stats(conn):
 				for key in MYSQL_INNODB_STATUS_MATCHES[match]:
 					value = MYSQL_INNODB_STATUS_MATCHES[match][key]
 					if type(value) is int:
-						stats[key] = int(row[value])
+						try:
+							stats[key] = int(row[value])
+						except ValueError:
+							pass
 					else:
 						stats[key] = value(row, stats)
 				break
