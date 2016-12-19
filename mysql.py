@@ -467,10 +467,16 @@ def fetch_innodb_stats(conn):
 		# 205 lock struct(s), heap size 30248, 37 row lock(s), undo log entries 1
 		elif line.find("lock struct(s)") != -1:
 			if line.find("LOCK WAIT") != -1:
-				stats['innodb_lock_structs'] += int(row[2])
+				try:
+					stats['innodb_lock_structs'] += int(row[2])
+				except ValueError:
+					pass
 				stats['locked_transactions'] += 1
 			else:
-				stats['innodb_lock_structs'] += int(row[0])
+				try:
+					stats['innodb_lock_structs'] += int(row[0])
+				except ValueError:
+					stats['innodb_lock_struts'] = None
 		else:
 			for match in MYSQL_INNODB_STATUS_MATCHES:
 				if line.find(match) == -1: continue
@@ -493,8 +499,9 @@ def dispatch_value(prefix, key, value, type, type_instance=None):
 	if not type_instance:
 		type_instance = key
 
-	log_verbose('Sending value: %s/%s=%s' % (prefix, type_instance, value))
-	if not value:
+	log_verbose('Prepping value: %s/%s=%s' % (prefix, type_instance, value))
+	if not value and value != 0:
+		log_verbose("value determined to be not sendable, dropping data point.")
 		return
 	try:
 		value = int(value)
@@ -506,6 +513,7 @@ def dispatch_value(prefix, key, value, type, type_instance=None):
 	val.type_instance = type_instance
 	val.values        = [value]
 	val.dispatch()
+	log_verbose('Dispatching value: %s/%s=%s' % (prefix, type_instance, value))
 
 def configure_callback(conf):
 	global MYSQL_CONFIG
