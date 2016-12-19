@@ -476,7 +476,7 @@ def fetch_innodb_stats(conn):
 				try:
 					stats['innodb_lock_structs'] += int(row[0])
 				except ValueError:
-					stats['innodb_lock_struts'] = None
+					pass
 		else:
 			for match in MYSQL_INNODB_STATUS_MATCHES:
 				if line.find(match) == -1: continue
