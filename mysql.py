@@ -9,17 +9,18 @@
 # Configuration:
 #  Import mysql
 #  <Module mysql>
-#  	Host localhost
-#  	Port 3306 (optional)
-#  	User root
-#  	Password xxxx
-#  	HeartbeatTable percona.heartbeat (optional, if using pt-heartbeat)
+#   Host localhost
+#   Port 3306 (optional)
+#   User root
+#   Password xxxx
+#   HeartbeatTable percona.heartbeat (optional, if using pt-heartbeat)
 #   Verbose true (optional, to enable debugging)
 #  </Module>
 #
 # Requires "MySQLdb" for Python
 #
 # Author: Chris Boulton <chris@chrisboulton.com>
+# Added metrics for Grafana Dashboards by Matej Zerovnik <matej@zunaj.si>
 # License: MIT (http://www.opensource.org/licenses/mit-license.php)
 #
 
@@ -55,11 +56,14 @@ MYSQL_STATUS_VARS = {
 	'Created_tmp_disk_tables': 'counter',
 	'Created_tmp_files': 'counter',
 	'Created_tmp_tables': 'counter',
+	'Innodb_buffer_pool_bytes_data': 'gauge',
+	'Innodb_buffer_pool_bytes_dirty': 'gauge',
 	'Innodb_buffer_pool_pages_data': 'gauge',
 	'Innodb_buffer_pool_pages_dirty': 'gauge',
 	'Innodb_buffer_pool_pages_free': 'gauge',
 	'Innodb_buffer_pool_pages_total': 'gauge',
 	'Innodb_buffer_pool_read_requests': 'counter',
+	'Innodb_buffer_pool_write_requests': 'counter',
 	'Innodb_buffer_pool_reads': 'counter',
 	'Innodb_checkpoint_age': 'gauge',
 	'Innodb_checkpoint_max_age': 'gauge',
@@ -82,6 +86,7 @@ MYSQL_STATUS_VARS = {
 	'Innodb_ibuf_size': 'gauge',
 	'Innodb_lsn_current': 'counter',
 	'Innodb_lsn_flushed': 'counter',
+	'Innodb_log_writes': 'counter',
 	'Innodb_max_trx_id': 'counter',
 	'Innodb_mem_adaptive_hash': 'gauge',
 	'Innodb_mem_dictionary': 'gauge',
@@ -90,9 +95,11 @@ MYSQL_STATUS_VARS = {
 	'Innodb_mutex_spin_rounds': 'counter',
 	'Innodb_mutex_spin_waits': 'counter',
 	'Innodb_os_log_pending_fsyncs': 'gauge',
+	'Innodb_os_log_written': 'counter',
 	'Innodb_pages_created': 'counter',
 	'Innodb_pages_read': 'counter',
 	'Innodb_pages_written': 'counter',
+	'Innodb_page_size': 'gauge',
 	'Innodb_row_lock_time': 'counter',
 	'Innodb_row_lock_time_avg': 'gauge',
 	'Innodb_row_lock_time_max': 'gauge',
@@ -132,6 +139,7 @@ MYSQL_STATUS_VARS = {
 	'Qcache_not_cached': 'counter',
 	'Qcache_queries_in_cache': 'counter',
 	'Qcache_total_blocks': 'counter',
+	'Queries': 'counter',
 	'Questions': 'counter',
 	'Select_full_join': 'counter',
 	'Select_full_range_join': 'counter',
@@ -158,41 +166,6 @@ MYSQL_STATUS_VARS = {
 	'Threads_created': 'counter',
 	'Threads_running': 'gauge',
 	'Uptime': 'gauge',
-	'wsrep_apply_oooe': 'gauge',
-	'wsrep_apply_oool': 'gauge',
-	'wsrep_apply_window': 'gauge',
-	'wsrep_causal_reads': 'gauge',
-	'wsrep_cert_deps_distance': 'gauge',
-	'wsrep_cert_index_size': 'gauge',
-	'wsrep_cert_interval': 'gauge',
-	'wsrep_cluster_size': 'gauge',
-	'wsrep_commit_oooe': 'gauge',
-	'wsrep_commit_oool': 'gauge',
-	'wsrep_commit_window': 'gauge',
-	'wsrep_flow_control_paused': 'gauge',
-	'wsrep_flow_control_paused_ns': 'counter',
-	'wsrep_flow_control_recv': 'counter',
-	'wsrep_flow_control_sent': 'counter',
-	'wsrep_local_bf_aborts': 'counter',
-	'wsrep_local_cert_failures': 'counter',
-	'wsrep_local_commits': 'counter',
-	'wsrep_local_recv_queue': 'gauge',
-	'wsrep_local_recv_queue_avg': 'gauge',
-	'wsrep_local_recv_queue_max': 'gauge',
-	'wsrep_local_recv_queue_min': 'gauge',
-	'wsrep_local_replays': 'gauge',
-	'wsrep_local_send_queue': 'gauge',
-	'wsrep_local_send_queue_avg': 'gauge',
-	'wsrep_local_send_queue_max': 'gauge',
-	'wsrep_local_send_queue_min': 'gauge',
-	'wsrep_received': 'counter',
-	'wsrep_received_bytes': 'counter',
-	'wsrep_repl_data_bytes': 'counter',
-	'wsrep_repl_keys': 'counter',
-	'wsrep_repl_keys_bytes': 'counter',
-	'wsrep_repl_other_bytes': 'counter',
-	'wsrep_replicated': 'counter',
-	'wsrep_replicated_bytes': 'counter',
 }
 
 MYSQL_VARS = [
@@ -203,15 +176,20 @@ MYSQL_VARS = [
 	'innodb_io_capacity',
 	'innodb_log_buffer_size',
 	'innodb_log_file_size',
+	'innodb_log_files_in_group',
+	'innodb_max_purge_lag',
 	'innodb_open_files',
 	'innodb_open_files',
 	'join_buffer_size',
+	'key_buffer_size',
+	'key_cache_block_size',
 	'max_connections',
 	'open_files_limit',
 	'query_cache_limit',
 	'query_cache_size',
 	'query_cache_size',
 	'read_buffer_size',
+	'read_only',
 	'table_cache',
 	'table_definition_cache',
 	'table_open_cache',
@@ -301,11 +279,11 @@ MYSQL_INNODB_STATUS_MATCHES = {
 	'Page hash    ': {
 		'page_hash_memory': 2,
 	},
-	# File system         657820264 	(812272 + 657007992)
+	# File system         657820264         (812272 + 657007992)
 	'File system    ': {
 		'file_system_memory': 2,
 	},
-	# Lock system         143820296 	(143819576 + 720)
+	# Lock system         143820296         (143819576 + 720)
 	'Lock system    ': {
 		'lock_system_memory': 2,
 	},
@@ -317,7 +295,7 @@ MYSQL_INNODB_STATUS_MATCHES = {
 	# --Thread 139954487744256 has waited at dict0dict.cc line 472 for 0.0000 seconds the semaphore:
 	'seconds the semaphore': {
 		'innodb_sem_waits': lambda row, stats: stats['innodb_sem_waits'] + 1,
-		'innodb_sem_wait_time_ms': lambda row, stats: int(float(row[9]) * 1000),
+		'innodb_sem_wait_time_ms': lambda row, stats: float(row[9]) * 1000,
 	},
 	# mysql tables in use 1, locked 1
 	'mysql tables in use': {
@@ -384,6 +362,7 @@ def fetch_mysql_slave_stats(conn):
 
 	status = {
 		'relay_log_space': slave_row['Relay_Log_Space'],
+		'last_errno':      slave_row['Last_Errno'],
 		'slave_lag':       slave_row['Seconds_Behind_Master'] if slave_row['Seconds_Behind_Master'] != None else 0,
 	}
 
@@ -398,8 +377,8 @@ def fetch_mysql_slave_stats(conn):
 		if 'delay' in row and row['delay'] != None:
 			status['slave_lag'] = row['delay']
 
-	status['slave_running'] = 1 if slave_row['Slave_SQL_Running'] == 'Yes' else 0
-	status['slave_stopped'] = 1 if slave_row['Slave_SQL_Running'] != 'Yes' else 0
+	status['slave_sql_running'] = 1 if slave_row['Slave_SQL_Running'] == 'Yes' else 0
+	status['slave_io_running'] = 1 if slave_row['Slave_IO_Running'] == 'Yes' else 0
 	return status
 
 def fetch_mysql_process_states(conn):
@@ -422,7 +401,10 @@ def fetch_mysql_variables(conn):
 	variables = {}
 	for row in result.fetchall():
 		if row['Variable_name'] in MYSQL_VARS:
-			variables[row['Variable_name']] = row['Value']
+			if row['Variable_name'] == 'read_only':
+				variables[row['Variable_name']] = 1 if row['Value'] == 'ON' else 0
+			else:
+				variables[row['Variable_name']] = row['Value']
 
 	return variables
 
@@ -510,10 +492,7 @@ def dispatch_value(prefix, key, value, type, type_instance=None):
 	log_verbose('Sending value: %s/%s=%s' % (prefix, type_instance, value))
 	if value is None:
 		return
-	try:
-		value = int(value)
-	except ValueError:
-		value = float(value)
+	value = int(value) # safety check
 
 	if COLLECTD_ENABLED:
 		val               = collectd.Values(plugin='mysql', plugin_instance=prefix)
