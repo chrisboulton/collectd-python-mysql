@@ -32,10 +32,13 @@ You should then configure the MySQL plugin:
 			Port 3306 (default: 3306)
 			User "root" (default: root)
 			Password "xxxx" (default: empty)
+      Instance "" (default: empty instance identifier)
 			HeartbeatTable "percona.heartbeat" (if using pt-heartbeat to track slave lag)
 			Verbose false (default: false)
 		</Module>
 	</Plugin>
+
+Repeat the "Module" section for multiple instances
 
 ## Metrics
 
