@@ -125,6 +125,7 @@ MYSQL_STATUS_VARS = {
 	'Key_write_requests': 'counter',
 	'Key_writes': 'counter',
 	'Max_used_connections': 'gauge',
+	'Memory_used': 'gauge',
 	'Open_files': 'gauge',
 	'Open_table_definitions': 'gauge',
 	'Open_tables': 'gauge',
