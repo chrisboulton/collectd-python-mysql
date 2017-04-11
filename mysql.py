@@ -494,7 +494,7 @@ def dispatch_value(prefix, key, value, type, type_instance=None):
 		type_instance = key
 
 	log_verbose('Sending value: %s/%s=%s' % (prefix, type_instance, value))
-	if not value:
+	if value is None:
 		return
 	try:
 		value = int(value)
