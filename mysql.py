@@ -39,6 +39,8 @@ MYSQL_CONFIG = {
 MYSQL_STATUS_VARS = {
 	'Aborted_clients': 'counter',
 	'Aborted_connects': 'counter',
+	'Connection_errors_internal': 'counter',
+	'Connection_errors_max_connections': 'counter',
 	'Binlog_cache_disk_use': 'counter',
 	'Binlog_cache_use': 'counter',
 	'Bytes_received': 'counter',
