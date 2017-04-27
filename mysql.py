@@ -521,59 +521,69 @@ def configure_callback(conf):
 	MYSQL_CONFIG['Verbose'] = bool(MYSQL_CONFIG['Verbose'])
 
 def read_callback():
-	global MYSQL_STATUS_VARS
 
-	# Check connect to mysql
+	log_verbose('start monitor database')
 	try:
-		conn = get_mysql_conn()
-	except OperationalError as ex:
-		# Connecto to mysql error. send service-running = 0 to collectd
-		dispatch_value('state', 'service-running', 0, 'gauge')
-		return
+		global MYSQL_STATUS_VARS
 
-	dispatch_value('state', 'service-running', 1, 'gauge')
+		# Check connect to mysql
+		try:
+			conn = get_mysql_conn()
+		except OperationalError as ex:
+			# Connecto to mysql error. send service-running = 0 to collectd
+			dispatch_value('state', 'service-running', 0, 'gauge')
+			return
 
-	mysql_status = fetch_mysql_status(conn)
-	for key in mysql_status:
-		if mysql_status[key] == '': mysql_status[key] = 0
+		dispatch_value('state', 'service-running', 1, 'gauge')
 
-		# collect anything beginning with Com_/Handler_ as these change
-		# regularly between  mysql versions and this is easier than a fixed
-		# list
-		if key.split('_', 2)[0] in ['Com', 'Handler']:
-			ds_type = 'counter'
-		elif key in MYSQL_STATUS_VARS:
-			ds_type = MYSQL_STATUS_VARS[key]
-		else:
-			continue
+		mysql_status = fetch_mysql_status(conn)
+		for key in mysql_status:
+			if mysql_status[key] == '': mysql_status[key] = 0
 
-		dispatch_value('status', key, mysql_status[key], ds_type)
+			# collect anything beginning with Com_/Handler_ as these change
+			# regularly between  mysql versions and this is easier than a fixed
+			# list
+			if key.split('_', 2)[0] in ['Com', 'Handler']:
+				ds_type = 'counter'
+			elif key in MYSQL_STATUS_VARS:
+				ds_type = MYSQL_STATUS_VARS[key]
+			else:
+				continue
 
-	mysql_variables = fetch_mysql_variables(conn)
-	for key in mysql_variables:
-		dispatch_value('variables', key, mysql_variables[key], 'gauge')
+			dispatch_value('status', key, mysql_status[key], ds_type)
 
-	mysql_master_status = fetch_mysql_master_stats(conn)
-	for key in mysql_master_status:
-		dispatch_value('master', key, mysql_master_status[key], 'gauge')
+		mysql_variables = fetch_mysql_variables(conn)
+		for key in mysql_variables:
+			dispatch_value('variables', key, mysql_variables[key], 'gauge')
 
-	mysql_states = fetch_mysql_process_states(conn)
-	for key in mysql_states:
-		dispatch_value('state', key, mysql_states[key], 'gauge')
+		mysql_master_status = fetch_mysql_master_stats(conn)
+		for key in mysql_master_status:
+			dispatch_value('master', key, mysql_master_status[key], 'gauge')
 
-	slave_status = fetch_mysql_slave_stats(conn)
-	for key in slave_status:
-		dispatch_value('slave', key, slave_status[key], 'gauge')
+		mysql_states = fetch_mysql_process_states(conn)
+		for key in mysql_states:
+			dispatch_value('state', key, mysql_states[key], 'gauge')
 
-	response_times = fetch_mysql_response_times(conn)
-	for key in response_times:
-		dispatch_value('response_time_total', str(key), response_times[key]['total'], 'counter')
-		dispatch_value('response_time_count', str(key), response_times[key]['count'], 'counter')
+		slave_status = fetch_mysql_slave_stats(conn)
+		for key in slave_status:
+			dispatch_value('slave', key, slave_status[key], 'gauge')
 
-	innodb_status = fetch_innodb_stats(conn)
-	for key in MYSQL_INNODB_STATUS_VARS:
-		if key not in innodb_status: continue
-		dispatch_value('innodb', key, innodb_status[key], MYSQL_INNODB_STATUS_VARS[key])
+		response_times = fetch_mysql_response_times(conn)
+		for key in response_times:
+			dispatch_value('response_time_total', str(key), response_times[key]['total'], 'counter')
+			dispatch_value('response_time_count', str(key), response_times[key]['count'], 'counter')
+
+		innodb_status = fetch_innodb_stats(conn)
+		for key in MYSQL_INNODB_STATUS_VARS:
+			if key not in innodb_status: continue
+			dispatch_value('innodb', key, innodb_status[key], MYSQL_INNODB_STATUS_VARS[key])
+
+		conn.close()
+	except Exception as ex:
+		log_verbose('%s' % ex)
+
+	log_verbose('end monitor database')
+
 
 collectd.register_read(read_callback)
 collectd.register_config(configure_callback)
