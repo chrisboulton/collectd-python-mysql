@@ -45,7 +45,7 @@ MYSQL_STATUS_VARS = {
 	'Com_select': 'counter',
 	'Com_insert': 'counter',
 	'Com_update': 'counter',
-	'Com_delete': 'delete',
+	'Com_delete': 'counter',
 	# 'Binlog_cache_disk_use': 'counter',
 	# 'Binlog_cache_use': 'counter',
 	# 'Bytes_received': 'counter',
@@ -547,9 +547,9 @@ def read_callback():
 			# collect anything beginning with Com_/Handler_ as these change
 			# regularly between  mysql versions and this is easier than a fixed
 			# list
-			if key.split('_', 2)[0] in ['Com', 'Handler'] and key in MYSQL_INNODB_STATUS_VARS:
-				ds_type = 'counter'
-			elif key in MYSQL_STATUS_VARS:
+			# if key.split('_', 2)[0] in ['Com', 'Handler']:
+			# 	ds_type = 'counter'
+			if key in MYSQL_STATUS_VARS:
 				ds_type = MYSQL_STATUS_VARS[key]
 			else:
 				continue
