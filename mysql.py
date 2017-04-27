@@ -26,6 +26,7 @@
 import collectd
 import re
 import MySQLdb
+from MySQLdb.connections import OperationalError
 
 MYSQL_CONFIG = {
 	'Host':           'localhost',
@@ -521,7 +522,16 @@ def configure_callback(conf):
 
 def read_callback():
 	global MYSQL_STATUS_VARS
-	conn = get_mysql_conn()
+
+	# Check connect to mysql
+	try:
+		conn = get_mysql_conn()
+	except OperationalError as ex:
+		# Connecto to mysql error. send service-running = 0 to collectd
+		dispatch_value('state', 'service-running', 0, 'gauge')
+		return
+
+	dispatch_value('state', 'service-running', 1, 'gauge')
 
 	mysql_status = fetch_mysql_status(conn)
 	for key in mysql_status:
