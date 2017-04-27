@@ -42,6 +42,10 @@ MYSQL_STATUS_VARS = {
 	'Aborted_connects': 'counter',
 	'Connection_errors_internal': 'counter',
 	'Connection_errors_max_connections': 'counter',
+	'Com_select': 'counter',
+	'Com_insert': 'counter',
+	'Com_update': 'counter',
+	'Com_delete': 'delete',
 	# 'Binlog_cache_disk_use': 'counter',
 	# 'Binlog_cache_use': 'counter',
 	# 'Bytes_received': 'counter',
@@ -543,9 +547,7 @@ def read_callback():
 			# collect anything beginning with Com_/Handler_ as these change
 			# regularly between  mysql versions and this is easier than a fixed
 			# list
-			if key.split('_', 2)[0] in ['Com', 'Handler']:
-				ds_type = 'counter'
-			elif key in MYSQL_STATUS_VARS:
+			if key in MYSQL_STATUS_VARS:
 				ds_type = MYSQL_STATUS_VARS[key]
 			else:
 				continue
@@ -560,9 +562,9 @@ def read_callback():
 		for key in mysql_master_status:
 			dispatch_value('master', key, mysql_master_status[key], 'gauge')
 
-		mysql_states = fetch_mysql_process_states(conn)
-		for key in mysql_states:
-			dispatch_value('state', key, mysql_states[key], 'gauge')
+		# mysql_states = fetch_mysql_process_states(conn)
+		# for key in mysql_states:
+		# 	dispatch_value('state', key, mysql_states[key], 'gauge')
 
 		slave_status = fetch_mysql_slave_stats(conn)
 		for key in slave_status:
