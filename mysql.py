@@ -437,6 +437,8 @@ def fetch_mysql_response_times(conn):
 		if not row:
 			row = { 'count': 0, 'total': 0 }
 
+		row = {key.lower(): val for key, val in row.items()}
+
 		response_times[i] = {
 			'time':  float(row['time']),
 			'count': int(row['count']),
