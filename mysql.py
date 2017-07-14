@@ -26,6 +26,7 @@
 import collectd
 import re
 import MySQLdb
+from MySQLdb.connections import OperationalError
 
 MYSQL_CONFIG = {
 	'Host':           'localhost',
@@ -37,180 +38,186 @@ MYSQL_CONFIG = {
 }
 
 MYSQL_STATUS_VARS = {
-	'Aborted_clients': 'counter',
+	# 'Aborted_clients': 'counter',
 	'Aborted_connects': 'counter',
-	'Binlog_cache_disk_use': 'counter',
-	'Binlog_cache_use': 'counter',
-	'Bytes_received': 'counter',
-	'Bytes_sent': 'counter',
-	'Connections': 'counter',
-	'Created_tmp_disk_tables': 'counter',
-	'Created_tmp_files': 'counter',
-	'Created_tmp_tables': 'counter',
-	'Innodb_buffer_pool_pages_data': 'gauge',
-	'Innodb_buffer_pool_pages_dirty': 'gauge',
-	'Innodb_buffer_pool_pages_free': 'gauge',
-	'Innodb_buffer_pool_pages_total': 'gauge',
-	'Innodb_buffer_pool_read_requests': 'counter',
-	'Innodb_buffer_pool_reads': 'counter',
-	'Innodb_checkpoint_age': 'gauge',
-	'Innodb_checkpoint_max_age': 'gauge',
-	'Innodb_data_fsyncs': 'counter',
-	'Innodb_data_pending_fsyncs': 'gauge',
-	'Innodb_data_pending_reads': 'gauge',
-	'Innodb_data_pending_writes': 'gauge',
-	'Innodb_data_read': 'counter',
-	'Innodb_data_reads': 'counter',
-	'Innodb_data_writes': 'counter',
-	'Innodb_data_written': 'counter',
-	'Innodb_deadlocks': 'counter',
-	'Innodb_history_list_length': 'gauge',
-	'Innodb_ibuf_free_list': 'gauge',
-	'Innodb_ibuf_merged_delete_marks': 'counter',
-	'Innodb_ibuf_merged_deletes': 'counter',
-	'Innodb_ibuf_merged_inserts': 'counter',
-	'Innodb_ibuf_merges': 'counter',
-	'Innodb_ibuf_segment_size': 'gauge',
-	'Innodb_ibuf_size': 'gauge',
-	'Innodb_lsn_current': 'counter',
-	'Innodb_lsn_flushed': 'counter',
-	'Innodb_max_trx_id': 'counter',
-	'Innodb_mem_adaptive_hash': 'gauge',
-	'Innodb_mem_dictionary': 'gauge',
-	'Innodb_mem_total': 'gauge',
-	'Innodb_mutex_os_waits': 'counter',
-	'Innodb_mutex_spin_rounds': 'counter',
-	'Innodb_mutex_spin_waits': 'counter',
-	'Innodb_os_log_pending_fsyncs': 'gauge',
-	'Innodb_pages_created': 'counter',
-	'Innodb_pages_read': 'counter',
-	'Innodb_pages_written': 'counter',
-	'Innodb_row_lock_time': 'counter',
-	'Innodb_row_lock_time_avg': 'gauge',
-	'Innodb_row_lock_time_max': 'gauge',
+	'Connection_errors_internal': 'counter',
+	'Connection_errors_max_connections': 'counter',
+	'Com_select': 'counter',
+	'Com_insert': 'counter',
+	'Com_update': 'counter',
+	'Com_delete': 'counter',
+	# 'Binlog_cache_disk_use': 'counter',
+	# 'Binlog_cache_use': 'counter',
+	# 'Bytes_received': 'counter',
+	# 'Bytes_sent': 'counter',
+	# 'Connections': 'counter',
+	# 'Created_tmp_disk_tables': 'counter',
+	# 'Created_tmp_files': 'counter',
+	# 'Created_tmp_tables': 'counter',
+	# 'Innodb_buffer_pool_pages_data': 'gauge',
+	# 'Innodb_buffer_pool_pages_dirty': 'gauge',
+	# 'Innodb_buffer_pool_pages_free': 'gauge',
+	# 'Innodb_buffer_pool_pages_total': 'gauge',
+	# 'Innodb_buffer_pool_read_requests': 'counter',
+	# 'Innodb_buffer_pool_reads': 'counter',
+	# 'Innodb_checkpoint_age': 'gauge',
+	# 'Innodb_checkpoint_max_age': 'gauge',
+	# 'Innodb_data_fsyncs': 'counter',
+	# 'Innodb_data_pending_fsyncs': 'gauge',
+	# 'Innodb_data_pending_reads': 'gauge',
+	# 'Innodb_data_pending_writes': 'gauge',
+	# 'Innodb_data_read': 'counter',
+	# 'Innodb_data_reads': 'counter',
+	# 'Innodb_data_writes': 'counter',
+	# 'Innodb_data_written': 'counter',
+	# 'Innodb_deadlocks': 'counter',
+	# 'Innodb_history_list_length': 'gauge',
+	# 'Innodb_ibuf_free_list': 'gauge',
+	# 'Innodb_ibuf_merged_delete_marks': 'counter',
+	# 'Innodb_ibuf_merged_deletes': 'counter',
+	# 'Innodb_ibuf_merged_inserts': 'counter',
+	# 'Innodb_ibuf_merges': 'counter',
+	# 'Innodb_ibuf_segment_size': 'gauge',
+	# 'Innodb_ibuf_size': 'gauge',
+	# 'Innodb_lsn_current': 'counter',
+	# 'Innodb_lsn_flushed': 'counter',
+	# 'Innodb_max_trx_id': 'counter',
+	# 'Innodb_mem_adaptive_hash': 'gauge',
+	# 'Innodb_mem_dictionary': 'gauge',
+	# 'Innodb_mem_total': 'gauge',
+	# 'Innodb_mutex_os_waits': 'counter',
+	# 'Innodb_mutex_spin_rounds': 'counter',
+	# 'Innodb_mutex_spin_waits': 'counter',
+	# 'Innodb_os_log_pending_fsyncs': 'gauge',
+	# 'Innodb_pages_created': 'counter',
+	# 'Innodb_pages_read': 'counter',
+	# 'Innodb_pages_written': 'counter',
+	# 'Innodb_row_lock_time': 'counter',
+	# 'Innodb_row_lock_time_avg': 'gauge',
+	# 'Innodb_row_lock_time_max': 'gauge',
 	'Innodb_row_lock_waits': 'counter',
-	'Innodb_rows_deleted': 'counter',
-	'Innodb_rows_inserted': 'counter',
-	'Innodb_rows_read': 'counter',
-	'Innodb_rows_updated': 'counter',
-	'Innodb_s_lock_os_waits': 'counter',
-	'Innodb_s_lock_spin_rounds': 'counter',
-	'Innodb_s_lock_spin_waits': 'counter',
-	'Innodb_uncheckpointed_bytes': 'gauge',
-	'Innodb_unflushed_log': 'gauge',
-	'Innodb_unpurged_txns': 'gauge',
-	'Innodb_x_lock_os_waits': 'counter',
-	'Innodb_x_lock_spin_rounds': 'counter',
-	'Innodb_x_lock_spin_waits': 'counter',
-	'Key_blocks_not_flushed': 'gauge',
-	'Key_blocks_unused': 'gauge',
-	'Key_blocks_used': 'gauge',
-	'Key_read_requests': 'counter',
-	'Key_reads': 'counter',
-	'Key_write_requests': 'counter',
-	'Key_writes': 'counter',
-	'Max_used_connections': 'gauge',
-	'Open_files': 'gauge',
-	'Open_table_definitions': 'gauge',
-	'Open_tables': 'gauge',
-	'Opened_files': 'counter',
-	'Opened_table_definitions': 'counter',
-	'Opened_tables': 'counter',
-	'Qcache_free_blocks': 'gauge',
-	'Qcache_free_memory': 'gauge',
-	'Qcache_hits': 'counter',
-	'Qcache_inserts': 'counter',
-	'Qcache_lowmem_prunes': 'counter',
-	'Qcache_not_cached': 'counter',
-	'Qcache_queries_in_cache': 'counter',
-	'Qcache_total_blocks': 'counter',
+	# 'Innodb_rows_deleted': 'counter',
+	# 'Innodb_rows_inserted': 'counter',
+	# 'Innodb_rows_read': 'counter',
+	# 'Innodb_rows_updated': 'counter',
+	# 'Innodb_s_lock_os_waits': 'counter',
+	# 'Innodb_s_lock_spin_rounds': 'counter',
+	# 'Innodb_s_lock_spin_waits': 'counter',
+	# 'Innodb_uncheckpointed_bytes': 'gauge',
+	# 'Innodb_unflushed_log': 'gauge',
+	# 'Innodb_unpurged_txns': 'gauge',
+	# 'Innodb_x_lock_os_waits': 'counter',
+	# 'Innodb_x_lock_spin_rounds': 'counter',
+	# 'Innodb_x_lock_spin_waits': 'counter',
+	# 'Key_blocks_not_flushed': 'gauge',
+	# 'Key_blocks_unused': 'gauge',
+	# 'Key_blocks_used': 'gauge',
+	# 'Key_read_requests': 'counter',
+	# 'Key_reads': 'counter',
+	# 'Key_write_requests': 'counter',
+	# 'Key_writes': 'counter',
+	# 'Max_used_connections': 'gauge',
+	# 'Open_files': 'gauge',
+	# 'Open_table_definitions': 'gauge',
+	# 'Open_tables': 'gauge',
+	# 'Opened_files': 'counter',
+	# 'Opened_table_definitions': 'counter',
+	# 'Opened_tables': 'counter',
+	# 'Qcache_free_blocks': 'gauge',
+	# 'Qcache_free_memory': 'gauge',
+	# 'Qcache_hits': 'counter',
+	# 'Qcache_inserts': 'counter',
+	# 'Qcache_lowmem_prunes': 'counter',
+	# 'Qcache_not_cached': 'counter',
+	# 'Qcache_queries_in_cache': 'counter',
+	# 'Qcache_total_blocks': 'counter',
 	'Questions': 'counter',
-	'Select_full_join': 'counter',
-	'Select_full_range_join': 'counter',
-	'Select_range': 'counter',
-	'Select_range_check': 'counter',
-	'Select_scan': 'counter',
-	'Slave_open_temp_tables': 'gauge',
-	'Slave_retried_transactions': 'counter',
-	'Slow_launch_threads': 'counter',
+	# 'Select_full_join': 'counter',
+	# 'Select_full_range_join': 'counter',
+	# 'Select_range': 'counter',
+	# 'Select_range_check': 'counter',
+	# 'Select_scan': 'counter',
+	# 'Slave_open_temp_tables': 'gauge',
+	# 'Slave_retried_transactions': 'counter',
+	# 'Slow_launch_threads': 'counter',
 	'Slow_queries': 'counter',
-	'Sort_merge_passes': 'counter',
-	'Sort_range': 'counter',
-	'Sort_rows': 'counter',
-	'Sort_scan': 'counter',
-	'Table_locks_immediate': 'counter',
-	'Table_locks_waited': 'counter',
-	'Table_open_cache_hits': 'counter',
-	'Table_open_cache_misses': 'counter',
-	'Table_open_cache_overflows': 'counter',
-	'Threadpool_idle_threads': 'gauge',
-	'Threadpool_threads': 'gauge',
-	'Threads_cached': 'gauge',
+	# 'Sort_merge_passes': 'counter',
+	# 'Sort_range': 'counter',
+	# 'Sort_rows': 'counter',
+	# 'Sort_scan': 'counter',
+	# 'Table_locks_immediate': 'counter',
+	# 'Table_locks_waited': 'counter',
+	# 'Table_open_cache_hits': 'counter',
+	# 'Table_open_cache_misses': 'counter',
+	# 'Table_open_cache_overflows': 'counter',
+	# 'Threadpool_idle_threads': 'gauge',
+	# 'Threadpool_threads': 'gauge',
+	# 'Threads_cached': 'gauge',
 	'Threads_connected': 'gauge',
-	'Threads_created': 'counter',
+	# 'Threads_created': 'counter',
 	'Threads_running': 'gauge',
 	'Uptime': 'gauge',
-	'wsrep_apply_oooe': 'gauge',
-	'wsrep_apply_oool': 'gauge',
-	'wsrep_apply_window': 'gauge',
-	'wsrep_causal_reads': 'gauge',
-	'wsrep_cert_deps_distance': 'gauge',
-	'wsrep_cert_index_size': 'gauge',
-	'wsrep_cert_interval': 'gauge',
-	'wsrep_cluster_size': 'gauge',
-	'wsrep_commit_oooe': 'gauge',
-	'wsrep_commit_oool': 'gauge',
-	'wsrep_commit_window': 'gauge',
-	'wsrep_flow_control_paused': 'gauge',
-	'wsrep_flow_control_paused_ns': 'counter',
-	'wsrep_flow_control_recv': 'counter',
-	'wsrep_flow_control_sent': 'counter',
-	'wsrep_local_bf_aborts': 'counter',
-	'wsrep_local_cert_failures': 'counter',
-	'wsrep_local_commits': 'counter',
-	'wsrep_local_recv_queue': 'gauge',
-	'wsrep_local_recv_queue_avg': 'gauge',
-	'wsrep_local_recv_queue_max': 'gauge',
-	'wsrep_local_recv_queue_min': 'gauge',
-	'wsrep_local_replays': 'gauge',
-	'wsrep_local_send_queue': 'gauge',
-	'wsrep_local_send_queue_avg': 'gauge',
-	'wsrep_local_send_queue_max': 'gauge',
-	'wsrep_local_send_queue_min': 'gauge',
-	'wsrep_received': 'counter',
-	'wsrep_received_bytes': 'counter',
-	'wsrep_repl_data_bytes': 'counter',
-	'wsrep_repl_keys': 'counter',
-	'wsrep_repl_keys_bytes': 'counter',
-	'wsrep_repl_other_bytes': 'counter',
-	'wsrep_replicated': 'counter',
-	'wsrep_replicated_bytes': 'counter',
+	# 'wsrep_apply_oooe': 'gauge',
+	# 'wsrep_apply_oool': 'gauge',
+	# 'wsrep_apply_window': 'gauge',
+	# 'wsrep_causal_reads': 'gauge',
+	# 'wsrep_cert_deps_distance': 'gauge',
+	# 'wsrep_cert_index_size': 'gauge',
+	# 'wsrep_cert_interval': 'gauge',
+	# 'wsrep_cluster_size': 'gauge',
+	# 'wsrep_commit_oooe': 'gauge',
+	# 'wsrep_commit_oool': 'gauge',
+	# 'wsrep_commit_window': 'gauge',
+	# 'wsrep_flow_control_paused': 'gauge',
+	# 'wsrep_flow_control_paused_ns': 'counter',
+	# 'wsrep_flow_control_recv': 'counter',
+	# 'wsrep_flow_control_sent': 'counter',
+	# 'wsrep_local_bf_aborts': 'counter',
+	# 'wsrep_local_cert_failures': 'counter',
+	# 'wsrep_local_commits': 'counter',
+	# 'wsrep_local_recv_queue': 'gauge',
+	# 'wsrep_local_recv_queue_avg': 'gauge',
+	# 'wsrep_local_recv_queue_max': 'gauge',
+	# 'wsrep_local_recv_queue_min': 'gauge',
+	# 'wsrep_local_replays': 'gauge',
+	# 'wsrep_local_send_queue': 'gauge',
+	# 'wsrep_local_send_queue_avg': 'gauge',
+	# 'wsrep_local_send_queue_max': 'gauge',
+	# 'wsrep_local_send_queue_min': 'gauge',
+	# 'wsrep_received': 'counter',
+	# 'wsrep_received_bytes': 'counter',
+	# 'wsrep_repl_data_bytes': 'counter',
+	# 'wsrep_repl_keys': 'counter',
+	# 'wsrep_repl_keys_bytes': 'counter',
+	# 'wsrep_repl_other_bytes': 'counter',
+	# 'wsrep_replicated': 'counter',
+	# 'wsrep_replicated_bytes': 'counter',
 }
 
 MYSQL_VARS = [
-	'binlog_stmt_cache_size',
-	'innodb_additional_mem_pool_size',
-	'innodb_buffer_pool_size',
-	'innodb_concurrency_tickets',
-	'innodb_io_capacity',
-	'innodb_log_buffer_size',
-	'innodb_log_file_size',
-	'innodb_open_files',
-	'innodb_open_files',
-	'join_buffer_size',
+	# 'binlog_stmt_cache_size',
+	# 'innodb_additional_mem_pool_size',
+	# 'innodb_buffer_pool_size',
+	# 'innodb_concurrency_tickets',
+	# 'innodb_io_capacity',
+	# 'innodb_log_buffer_size',
+	# 'innodb_log_file_size',
+	# 'innodb_open_files',
+	# 'innodb_open_files',
+	# 'join_buffer_size',
 	'max_connections',
-	'open_files_limit',
-	'query_cache_limit',
-	'query_cache_size',
-	'query_cache_size',
-	'read_buffer_size',
-	'table_cache',
-	'table_definition_cache',
-	'table_open_cache',
-	'thread_cache_size',
-	'thread_cache_size',
-	'thread_concurrency',
-	'tmp_table_size',
+	# 'open_files_limit',
+	# 'query_cache_limit',
+	# 'query_cache_size',
+	# 'query_cache_size',
+	# 'read_buffer_size',
+	# 'table_cache',
+	# 'table_definition_cache',
+	# 'table_open_cache',
+	# 'thread_cache_size',
+	# 'thread_cache_size',
+	# 'thread_concurrency',
+	# 'tmp_table_size',
 ]
 
 MYSQL_PROCESS_STATES = {
@@ -235,29 +242,29 @@ MYSQL_PROCESS_STATES = {
 }
 
 MYSQL_INNODB_STATUS_VARS = {
-	'active_transactions': 'gauge',
-	'current_transactions': 'gauge',
-	'file_reads': 'counter',
-	'file_system_memory': 'gauge',
-	'file_writes': 'counter',
-	'innodb_lock_structs': 'gauge',
-	'innodb_lock_wait_secs': 'gauge',
-	'innodb_locked_tables': 'gauge',
-	'innodb_sem_wait_time_ms': 'gauge',
-	'innodb_sem_waits': 'gauge',
-	'innodb_tables_in_use': 'gauge',
-	'lock_system_memory': 'gauge',
-	'locked_transactions': 'gauge',
-	'log_writes': 'counter',
-	'page_hash_memory': 'gauge',
-	'pending_aio_log_ios': 'gauge',
-	'pending_buf_pool_flushes': 'gauge',
-	'pending_chkp_writes': 'gauge',
-	'pending_ibuf_aio_reads': 'gauge',
-	'pending_log_writes':'gauge',
-	'queries_inside': 'gauge',
-	'queries_queued': 'gauge',
-	'read_views': 'gauge',
+	# 'active_transactions': 'gauge',
+	# 'current_transactions': 'gauge',
+	# 'file_reads': 'counter',
+	# 'file_system_memory': 'gauge',
+	# 'file_writes': 'counter',
+	# 'innodb_lock_structs': 'gauge',
+	# 'innodb_lock_wait_secs': 'gauge',
+	# 'innodb_locked_tables': 'gauge',
+	# 'innodb_sem_wait_time_ms': 'gauge',
+	# 'innodb_sem_waits': 'gauge',
+	# 'innodb_tables_in_use': 'gauge',
+	# 'lock_system_memory': 'gauge',
+	# 'locked_transactions': 'gauge',
+	# 'log_writes': 'counter',
+	# 'page_hash_memory': 'gauge',
+	# 'pending_aio_log_ios': 'gauge',
+	# 'pending_buf_pool_flushes': 'gauge',
+	# 'pending_chkp_writes': 'gauge',
+	# 'pending_ibuf_aio_reads': 'gauge',
+	# 'pending_log_writes':'gauge',
+	# 'queries_inside': 'gauge',
+	# 'queries_queued': 'gauge',
+	# 'read_views': 'gauge',
 }
 
 MYSQL_INNODB_STATUS_MATCHES = {
@@ -520,50 +527,69 @@ def configure_callback(conf):
 	MYSQL_CONFIG['Verbose'] = bool(MYSQL_CONFIG['Verbose'])
 
 def read_callback():
-	global MYSQL_STATUS_VARS
-	conn = get_mysql_conn()
 
-	mysql_status = fetch_mysql_status(conn)
-	for key in mysql_status:
-		if mysql_status[key] == '': mysql_status[key] = 0
+	log_verbose('start monitor database')
+	try:
+		global MYSQL_STATUS_VARS
 
-		# collect anything beginning with Com_/Handler_ as these change
-		# regularly between  mysql versions and this is easier than a fixed
-		# list
-		if key.split('_', 2)[0] in ['Com', 'Handler']:
-			ds_type = 'counter'
-		elif key in MYSQL_STATUS_VARS:
-			ds_type = MYSQL_STATUS_VARS[key]
-		else:
-			continue
+		# Check connect to mysql
+		try:
+			conn = get_mysql_conn()
+		except OperationalError as ex:
+			# Connecto to mysql error. send service-running = 0 to collectd
+			dispatch_value('state', 'service-running', 0, 'gauge')
+			return
 
-		dispatch_value('status', key, mysql_status[key], ds_type)
+		dispatch_value('state', 'service-running', 1, 'gauge')
 
-	mysql_variables = fetch_mysql_variables(conn)
-	for key in mysql_variables:
-		dispatch_value('variables', key, mysql_variables[key], 'gauge')
+		mysql_status = fetch_mysql_status(conn)
+		for key in mysql_status:
+			if mysql_status[key] == '': mysql_status[key] = 0
 
-	mysql_master_status = fetch_mysql_master_stats(conn)
-	for key in mysql_master_status:
-		dispatch_value('master', key, mysql_master_status[key], 'gauge')
+			# collect anything beginning with Com_/Handler_ as these change
+			# regularly between  mysql versions and this is easier than a fixed
+			# list
+			# if key.split('_', 2)[0] in ['Com', 'Handler']:
+			# 	ds_type = 'counter'
+			if key in MYSQL_STATUS_VARS:
+				ds_type = MYSQL_STATUS_VARS[key]
+			else:
+				continue
 
-	mysql_states = fetch_mysql_process_states(conn)
-	for key in mysql_states:
-		dispatch_value('state', key, mysql_states[key], 'gauge')
+			dispatch_value('status', key, mysql_status[key], ds_type)
 
-	slave_status = fetch_mysql_slave_stats(conn)
-	for key in slave_status:
-		dispatch_value('slave', key, slave_status[key], 'gauge')
+		mysql_variables = fetch_mysql_variables(conn)
+		for key in mysql_variables:
+			dispatch_value('variables', key, mysql_variables[key], 'gauge')
 
-	response_times = fetch_mysql_response_times(conn)
-	for key in response_times:
-		dispatch_value('response_time_total', str(key), response_times[key]['total'], 'counter')
-		dispatch_value('response_time_count', str(key), response_times[key]['count'], 'counter')
+		mysql_master_status = fetch_mysql_master_stats(conn)
+		for key in mysql_master_status:
+			dispatch_value('master', key, mysql_master_status[key], 'gauge')
 
-	innodb_status = fetch_innodb_stats(conn)
-	for key in MYSQL_INNODB_STATUS_VARS:
-		if key not in innodb_status: continue
-		dispatch_value('innodb', key, innodb_status[key], MYSQL_INNODB_STATUS_VARS[key])
+		# mysql_states = fetch_mysql_process_states(conn)
+		# for key in mysql_states:
+		# 	dispatch_value('state', key, mysql_states[key], 'gauge')
+
+		slave_status = fetch_mysql_slave_stats(conn)
+		for key in slave_status:
+			dispatch_value('slave', key, slave_status[key], 'gauge')
+
+		response_times = fetch_mysql_response_times(conn)
+		for key in response_times:
+			dispatch_value('response_time_total', str(key), response_times[key]['total'], 'counter')
+			dispatch_value('response_time_count', str(key), response_times[key]['count'], 'counter')
+
+		# innodb_status = fetch_innodb_stats(conn)
+		# for key in MYSQL_INNODB_STATUS_VARS:
+		# 	if key not in innodb_status: continue
+		# 	dispatch_value('innodb', key, innodb_status[key], MYSQL_INNODB_STATUS_VARS[key])
+
+		conn.close()
+	except Exception as ex:
+		log_verbose('%s' % ex)
+
+	log_verbose('end monitor database')
+
 
 collectd.register_read(read_callback)
 collectd.register_config(configure_callback)
