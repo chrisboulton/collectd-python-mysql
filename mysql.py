@@ -437,6 +437,8 @@ def fetch_mysql_response_times(conn):
 		if not row:
 			row = { 'count': 0, 'total': 0 }
 
+		row = {key.lower(): val for key, val in row.items()}
+
 		response_times[i] = {
 			'time':  float(row['time']),
 			'count': int(row['count']),
@@ -483,10 +485,8 @@ def fetch_innodb_stats(conn):
 				for key in MYSQL_INNODB_STATUS_MATCHES[match]:
 					value = MYSQL_INNODB_STATUS_MATCHES[match][key]
 					if type(value) is int:
-						try:
+						if value < len(row) and row[value].isdigit():
 							stats[key] = int(row[value])
-						except ValueError:
-							pass
 					else:
 						stats[key] = value(row, stats)
 				break
@@ -505,6 +505,7 @@ def dispatch_value(prefix, key, value, type, type_instance=None):
 	log_verbose('Prepping value: %s/%s=%s' % (prefix, type_instance, value))
 	if not value and value != 0:
 		log_verbose("value determined to be not sendable, dropping data point.")
+
 		return
 	try:
 		value = int(value)
