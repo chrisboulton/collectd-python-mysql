@@ -23,7 +23,15 @@
 # License: MIT (http://www.opensource.org/licenses/mit-license.php)
 #
 
-import collectd
+import sys
+
+COLLECTD_ENABLED=True
+try:
+	import collectd
+except ImportError:
+	# We're not running in CollectD, set this to False so we can make some changes
+	# accordingly for testing/development.
+	COLLECTD_ENABLED=False
 import re
 import MySQLdb
 
@@ -488,9 +496,12 @@ def fetch_innodb_stats(conn):
 	return stats
 
 def log_verbose(msg):
-	if MYSQL_CONFIG['Verbose'] == False:
+	if not MYSQL_CONFIG['Verbose']:
 		return
-	collectd.info('mysql plugin: %s' % msg)
+	if COLLECTD_ENABLED:
+		collectd.info('mysql plugin: %s' % msg)
+	else:
+		print('mysql plugin: %s' % msg)
 
 def dispatch_value(prefix, key, value, type, type_instance=None):
 	if not type_instance:
@@ -504,11 +515,12 @@ def dispatch_value(prefix, key, value, type, type_instance=None):
 	except ValueError:
 		value = float(value)
 
-	val               = collectd.Values(plugin='mysql', plugin_instance=prefix)
-	val.type          = type
-	val.type_instance = type_instance
-	val.values        = [value]
-	val.dispatch()
+	if COLLECTD_ENABLED:
+		val               = collectd.Values(plugin='mysql', plugin_instance=prefix)
+		val.type          = type
+		val.type_instance = type_instance
+		val.values        = [value]
+		val.dispatch()
 
 def configure_callback(conf):
 	global MYSQL_CONFIG
@@ -565,7 +577,21 @@ def read_callback():
 		if key not in innodb_status: continue
 		dispatch_value('innodb', key, innodb_status[key], MYSQL_INNODB_STATUS_VARS[key])
 
-collectd.register_read(read_callback)
-collectd.register_config(configure_callback)
+if COLLECTD_ENABLED:
+	 collectd.register_read(read_callback)
+	 collectd.register_config(configure_callback)
+
+if __name__ == "__main__" and not COLLECTD_ENABLED:
+	print "Running in test mode, invoke with"
+	print sys.argv[0] + " Host Port User Password "
+	MYSQL_CONFIG['Host'] = sys.argv[1]
+	MYSQL_CONFIG['Port'] = int(sys.argv[2])
+	MYSQL_CONFIG['User'] = sys.argv[3]
+	MYSQL_CONFIG['Password'] = sys.argv[4]
+	MYSQL_CONFIG['Verbose'] = True
+	from pprint import pprint as pp
+	pp(MYSQL_CONFIG)
+	read_callback()
+
 
 # vim:noexpandtab ts=8 sw=8 sts=8
