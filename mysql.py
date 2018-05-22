@@ -398,8 +398,8 @@ def fetch_mysql_slave_stats(conn):
 		if 'delay' in row and row['delay'] != None:
 			status['slave_lag'] = row['delay']
 
-	status['slave_running'] = 1 if slave_row['Slave_SQL_Running'] == 'Yes' else 0
-	status['slave_stopped'] = 1 if slave_row['Slave_SQL_Running'] != 'Yes' else 0
+	status['slave_running'] = 1 if slave_row['Slave_SQL_Running'] == 'Yes' and slave_row['Slave_IO_Running'] == 'Yes' else 0
+	status['slave_stopped'] = 1 if slave_row['Slave_SQL_Running'] != 'Yes' or slave_row['Slave_IO_Running'] != 'Yes' else 0
 	return status
 
 def fetch_mysql_process_states(conn):
