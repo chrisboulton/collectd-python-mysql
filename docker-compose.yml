@@ -1,0 +1,28 @@
+# Docker Compose development manifest
+# This manifest spins up a MariaDB/MySQL server container and builds a
+# collectd+python image with all required runtime dependencies and starts
+# a collectd container linked to the database container to allow testing.
+
+# By default, MariaDB/MySQL port is not exposed to the development host,
+# since collectd connects using a hostname defined via container link.
+mysql:
+  image: mariadb
+  environment:
+    - MYSQL_ALLOW_EMPTY_PASSWORD=yes
+#    - MYSQL_ROOT_PASSWORD=root
+#    - MYSQL_USER=collectd
+#    - MYSQL_PASSWORD=collectd
+#  ports:
+#    - "3306:3306"
+
+# Collectd service mounts both Python code and plugin configuration from
+# current development directory.
+# The parent image used for the build just uses collectd's built in CSV
+# plugin with output to stdout for debugging.
+collectd:
+  build: .
+  links:
+    - mysql
+  volumes:
+    - ./mysql.py:/opt/collectd/lib/collectd/plugins/python/mysql.py:ro
+    - ./mysql.conf:/etc/collectd/conf.d/mysql.conf:ro

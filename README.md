@@ -322,5 +322,8 @@ For versions of MySQL with support for it and where enabled, `INFORMATION_SCHEMA
     response_time_total.14
     response_time_count.14
 
+## Development
+A Docker Compose manifest with a stack for testing and development is provided. Just issue ```docker-compose up --build``` to start it. See ```docker-compose.yml``` and ```mysql.conf``` files for configuration details.
+
 ## License
 MIT (http://www.opensource.org/licenses/mit-license.php)
