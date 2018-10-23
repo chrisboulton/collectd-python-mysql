@@ -296,6 +296,14 @@ TBD:
 	hash_index_cells_used
 	additional_pool_alloc
 
+### Database size
+
+Collected by parsing the output of `SELECT table_schema 'db_name',  Round(Sum(data_length + index_length) / 1024 / 1024, 0) 'db_size_mb'  FROM   information_schema.tables WHERE table_schema not in ('mysql', 'information_schema', 'performance_schema', 'heartbeat') GROUP  BY table_schema;`:
+
+    db_size/databasename=14907
+
+The Database size is in MB.
+
 
 ### Master/Slave Status
    
