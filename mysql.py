@@ -402,6 +402,14 @@ def fetch_mysql_slave_stats(conn):
 	status['slave_stopped'] = 1 if slave_row['Slave_SQL_Running'] != 'Yes' or slave_row['Slave_IO_Running'] != 'Yes' else 0
 	return status
 
+def fetch_mysql_db_size(conn):
+	result = mysql_query(conn, "SELECT table_schema 'db_name',  Round(Sum(data_length + index_length) / 1024 / 1024, 0) 'db_size_mb'  FROM   information_schema.tables WHERE table_schema not in ('mysql', 'information_schema', 'performance_schema', 'heartbeat') GROUP  BY table_schema;")
+
+	stats = {}
+	for row in result.fetchall():
+    		stats[row['db_name']] = row['db_size_mb']
+	return stats
+
 def fetch_mysql_process_states(conn):
 	global MYSQL_PROCESS_STATES
 	result = mysql_query(conn, 'SHOW PROCESSLIST')
@@ -571,6 +579,10 @@ def read_callback():
 	for key in response_times:
 		dispatch_value('response_time_total', str(key), response_times[key]['total'], 'counter')
 		dispatch_value('response_time_count', str(key), response_times[key]['count'], 'counter')
+	
+	mysql_db_size = fetch_mysql_db_size(conn)
+	for key in mysql_db_size:
+            	dispatch_value('db_size', key, mysql_db_size[key], 'counter')
 
 	innodb_status = fetch_innodb_stats(conn)
 	for key in MYSQL_INNODB_STATUS_VARS:
