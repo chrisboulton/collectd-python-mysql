@@ -582,7 +582,7 @@ def read_callback():
 	
 	mysql_db_size = fetch_mysql_db_size(conn)
 	for key in mysql_db_size:
-            	dispatch_value('db_size', key, mysql_db_size[key], 'counter')
+            	dispatch_value('db_size', key, mysql_db_size[key], 'gauge')
 
 	innodb_status = fetch_innodb_stats(conn)
 	for key in MYSQL_INNODB_STATUS_VARS:
