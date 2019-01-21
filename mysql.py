@@ -96,7 +96,7 @@ MYSQL_STATUS_VARS = {
 	'Innodb_row_lock_time': 'counter',
 	'Innodb_row_lock_time_avg': 'gauge',
 	'Innodb_row_lock_time_max': 'gauge',
-	'Innodb_row_lock_waits': 'counter',
+	'Innodb_row_lock_waits': 'gauge',
 	'Innodb_rows_deleted': 'counter',
 	'Innodb_rows_inserted': 'counter',
 	'Innodb_rows_read': 'counter',
