@@ -410,6 +410,11 @@ def fetch_mysql_db_size(conn):
     		stats[row['db_name']] = row['db_size_mb']
 	return stats
 
+def fetch_innodb_os_log_bytes_written(conn):
+	result = mysql_query(conn, "SELECT COUNT from INFORMATION_SCHEMA.INNODB_METRICS where name ='os_log_bytes_written';")
+	stats = result.fetchone()
+	return stats
+
 def fetch_mysql_process_states(conn):
 	global MYSQL_PROCESS_STATES
 	result = mysql_query(conn, 'SHOW PROCESSLIST')
@@ -583,6 +588,9 @@ def read_callback():
 	mysql_db_size = fetch_mysql_db_size(conn)
 	for key in mysql_db_size:
             	dispatch_value('db_size', key, mysql_db_size[key], 'gauge')
+
+	innodb_log_bytes_written = fetch_innodb_os_log_bytes_written(conn)
+	dispatch_value('innodb', 'os_log_bytes_written', innodb_log_bytes_written['COUNT'], 'counter')
 
 	innodb_status = fetch_innodb_stats(conn)
 	for key in MYSQL_INNODB_STATUS_VARS:

@@ -296,6 +296,15 @@ TBD:
 	hash_index_cells_used
 	additional_pool_alloc
 
+### InnoDB metrics from information_schema
+
+**Warning: This is only available for MariaDB 10.x**
+
+Collected by parsing the output of `SELECT COUNT from INFORMATION_SCHEMA.INNODB_METRICS where name ='os_log_bytes_written';`:
+
+    mysql plugin: Sending value: innodb/os_log_bytes_written=263167952896
+
+
 ### Database size
 
 Collected by parsing the output of `SELECT table_schema 'db_name',  Round(Sum(data_length + index_length) / 1024 / 1024, 0) 'db_size_mb'  FROM   information_schema.tables WHERE table_schema not in ('mysql', 'information_schema', 'performance_schema', 'heartbeat') GROUP  BY table_schema;`:
