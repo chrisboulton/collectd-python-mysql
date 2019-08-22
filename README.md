@@ -298,7 +298,7 @@ TBD:
 
 ### InnoDB metrics from information_schema
 
-**Warning: This is only available for MariaDB 10.x**
+**Warning: This is only available in MariaDB >= 10.x and MySQL >= 5.6.**
 
 Collected by parsing the output of `SELECT COUNT from INFORMATION_SCHEMA.INNODB_METRICS where name ='os_log_bytes_written';`:
 

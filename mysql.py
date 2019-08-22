@@ -411,8 +411,12 @@ def fetch_mysql_db_size(conn):
 	return stats
 
 def fetch_innodb_os_log_bytes_written(conn):
-	result = mysql_query(conn, "SELECT COUNT from INFORMATION_SCHEMA.INNODB_METRICS where name ='os_log_bytes_written';")
-	stats = result.fetchone()
+	# This feature is only available for mariaDB >= 10.x and MySQL > 5.5.
+	try:
+		result = mysql_query(conn, "SELECT COUNT from INFORMATION_SCHEMA.INNODB_METRICS where name ='os_log_bytes_written';")
+		stats = result.fetchone()
+	except MySQLdb.OperationalError:
+		stats = {'COUNT': 0}
 	return stats
 
 def fetch_mysql_process_states(conn):
@@ -602,8 +606,8 @@ if COLLECTD_ENABLED:
 	 collectd.register_config(configure_callback)
 
 if __name__ == "__main__" and not COLLECTD_ENABLED:
-	print "Running in test mode, invoke with"
-	print sys.argv[0] + " Host Port User Password "
+	print("Running in test mode, invoke with")
+	print(sys.argv[0] + " Host Port User Password ")
 	MYSQL_CONFIG['Host'] = sys.argv[1]
 	MYSQL_CONFIG['Port'] = int(sys.argv[2])
 	MYSQL_CONFIG['User'] = sys.argv[3]
