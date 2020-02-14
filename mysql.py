@@ -419,6 +419,15 @@ def fetch_innodb_os_log_bytes_written(conn):
 		stats = {'COUNT': 0}
 	return stats
 
+def fetch_mariadb_lock(conn):
+	# This feature is only available for mariaDB with plugin METADATA_LOCK_INFO installed
+	try:
+		result = mysql_query(conn, "SELECT count(1) as `nb_lock` FROM INFORMATION_SCHEMA.PROCESSLIST P, INFORMATION_SCHEMA.METADATA_LOCK_INFO M WHERE LOCATE(lcase(M.LOCK_TYPE), lcase(P.STATE))>0;")
+		stats = result.fetchone()
+	except MySQLdb.OperationalError:
+		stats = {'nb_lock': 0}
+	return stats
+
 def fetch_mysql_process_states(conn):
 	global MYSQL_PROCESS_STATES
 	result = mysql_query(conn, 'SHOW PROCESSLIST')
@@ -430,7 +439,6 @@ def fetch_mysql_process_states(conn):
 		state = state.lower().replace(" ", "_")
 		if state not in states: state = 'other'
 		states[state] += 1
-
 	return states
 
 def fetch_mysql_variables(conn):
@@ -595,6 +603,11 @@ def read_callback():
 
 	innodb_log_bytes_written = fetch_innodb_os_log_bytes_written(conn)
 	dispatch_value('innodb', 'os_log_bytes_written', innodb_log_bytes_written['COUNT'], 'counter')
+
+
+	meta_data_lock = fetch_mariadb_lock(conn)
+	dispatch_value('mariadb', 'lock', meta_data_lock['nb_lock'], 'gauge')
+
 
 	innodb_status = fetch_innodb_stats(conn)
 	for key in MYSQL_INNODB_STATUS_VARS:
