@@ -606,7 +606,7 @@ def read_callback():
 
 
 	meta_data_lock = fetch_mariadb_lock(conn)
-	dispatch_value('mariadb', 'lock', meta_data_lock['nb_lock'], 'gauge')
+	dispatch_value('innodb', 'lock', meta_data_lock['nb_lock'], 'gauge')
 
 
 	innodb_status = fetch_innodb_stats(conn)
