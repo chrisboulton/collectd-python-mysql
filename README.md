@@ -304,6 +304,13 @@ Collected by parsing the output of `SELECT COUNT from INFORMATION_SCHEMA.INNODB_
 
     mysql plugin: Sending value: innodb/os_log_bytes_written=263167952896
 
+To get the metadata lock information:
+
+    mysql plugin: Sending value: innodb/lock=0
+
+- MariaDB: https://mariadb.com/kb/en/metadata-lock-info-plugin/
+- MySQL: https://dev.mysql.com/doc/refman/5.7/en/metadata-locks-table.html
+
 
 ### Database size
 
