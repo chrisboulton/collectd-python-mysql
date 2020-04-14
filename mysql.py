@@ -212,6 +212,7 @@ MYSQL_VARS = [
 	'query_cache_size',
 	'query_cache_size',
 	'read_buffer_size',
+	'read_only',
 	'table_cache',
 	'table_definition_cache',
 	'table_open_cache',
