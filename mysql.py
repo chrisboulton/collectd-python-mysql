@@ -448,7 +448,13 @@ def fetch_mysql_variables(conn):
 	variables = {}
 	for row in result.fetchall():
 		if row['Variable_name'] in MYSQL_VARS:
-			variables[row['Variable_name']] = row['Value']
+			if row['Variable_name'] == 'read_only':
+				if row['Value'] == 'OFF':
+                    			variables[row['Variable_name']] = 0
+                		else:
+                    			variables[row['Variable_name']] = 1
+            		else:
+                		variables[row['Variable_name']] = row['Value']
 
 	return variables
 
