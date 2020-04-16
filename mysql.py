@@ -24,16 +24,17 @@
 #
 
 import sys
+import re
 
-COLLECTD_ENABLED=True
+import MySQLdb
+
+COLLECTD_ENABLED = True
 try:
     import collectd
 except ImportError:
     # We're not running in CollectD, set this to False so we can make some changes
     # accordingly for testing/development.
-    COLLECTD_ENABLED=False
-import re
-import MySQLdb
+    COLLECTD_ENABLED = False
 
 MYSQL_CONFIG = {
     'Host':           'localhost',
@@ -263,7 +264,7 @@ MYSQL_INNODB_STATUS_VARS = {
     'pending_buf_pool_flushes': 'gauge',
     'pending_chkp_writes': 'gauge',
     'pending_ibuf_aio_reads': 'gauge',
-    'pending_log_writes':'gauge',
+    'pending_log_writes': 'gauge',
     'queries_inside': 'gauge',
     'queries_queued': 'gauge',
     'read_views': 'gauge',
@@ -330,6 +331,7 @@ MYSQL_INNODB_STATUS_MATCHES = {
     },
 }
 
+
 def get_mysql_conn():
     return MySQLdb.connect(
         host=MYSQL_CONFIG['Host'],
@@ -338,10 +340,12 @@ def get_mysql_conn():
         passwd=MYSQL_CONFIG['Password']
     )
 
+
 def mysql_query(conn, query):
     cur = conn.cursor(MySQLdb.cursors.DictCursor)
     cur.execute(query)
     return cur
+
 
 def fetch_mysql_status(conn):
     result = mysql_query(conn, 'SHOW GLOBAL STATUS')
@@ -354,12 +358,13 @@ def fetch_mysql_status(conn):
         status['Innodb_unpurged_txns'] = int(status['Innodb_max_trx_id']) - int(status['Innodb_purge_trx_id'])
 
     if 'Innodb_lsn_last_checkpoint' in status:
-        status['Innodb_uncheckpointed_bytes'] = int(status['Innodb_lsn_current'])- int(status['Innodb_lsn_last_checkpoint'])
+        status['Innodb_uncheckpointed_bytes'] = int(status['Innodb_lsn_current']) - int(status['Innodb_lsn_last_checkpoint'])
 
     if 'Innodb_lsn_flushed' in status:
         status['Innodb_unflushed_log'] = int(status['Innodb_lsn_current']) - int(status['Innodb_lsn_flushed'])
 
     return status
+
 
 def fetch_mysql_master_stats(conn):
     try:
@@ -377,6 +382,7 @@ def fetch_mysql_master_stats(conn):
 
     return stats
 
+
 def fetch_mysql_slave_stats(conn):
     result    = mysql_query(conn, 'SHOW SLAVE STATUS')
     slave_row = result.fetchone()
@@ -385,7 +391,7 @@ def fetch_mysql_slave_stats(conn):
 
     status = {
         'relay_log_space': slave_row['Relay_Log_Space'],
-        'slave_lag':       slave_row['Seconds_Behind_Master'] if slave_row['Seconds_Behind_Master'] != None else 0,
+        'slave_lag':       slave_row['Seconds_Behind_Master'] if slave_row['Seconds_Behind_Master'] is not None else 0,
     }
 
     if MYSQL_CONFIG['HeartbeatTable']:
@@ -396,38 +402,57 @@ def fetch_mysql_slave_stats(conn):
         """ % (MYSQL_CONFIG['HeartbeatTable'], slave_row['Master_Server_Id'])
         result = mysql_query(conn, query)
         row    = result.fetchone()
-        if 'delay' in row and row['delay'] != None:
+        if 'delay' in row and row['delay'] is not None:
             status['slave_lag'] = row['delay']
 
     status['slave_running'] = 1 if slave_row['Slave_SQL_Running'] == 'Yes' and slave_row['Slave_IO_Running'] == 'Yes' else 0
     status['slave_stopped'] = 1 if slave_row['Slave_SQL_Running'] != 'Yes' or slave_row['Slave_IO_Running'] != 'Yes' else 0
     return status
 
+
 def fetch_mysql_db_size(conn):
-    result = mysql_query(conn, "SELECT table_schema 'db_name',  Round(Sum(data_length + index_length) / 1024 / 1024, 0) 'db_size_mb'  FROM   information_schema.tables WHERE table_schema not in ('mysql', 'information_schema', 'performance_schema', 'heartbeat') GROUP  BY table_schema;")
+    result = mysql_query(
+        conn,
+        "SELECT table_schema 'db_name', Round(Sum(data_length + index_length) / 1024 / 1024, 0) 'db_size_mb' "
+        "FROM information_schema.tables "
+        "WHERE table_schema not in ('mysql', 'information_schema', 'performance_schema', 'heartbeat') "
+        "GROUP BY table_schema;"
+    )
 
     stats = {}
     for row in result.fetchall():
         stats[row['db_name']] = row['db_size_mb']
     return stats
 
+
 def fetch_innodb_os_log_bytes_written(conn):
     # This feature is only available for mariaDB >= 10.x and MySQL > 5.5.
     try:
-        result = mysql_query(conn, "SELECT COUNT from INFORMATION_SCHEMA.INNODB_METRICS where name ='os_log_bytes_written';")
+        result = mysql_query(
+            conn,
+            "SELECT COUNT from INFORMATION_SCHEMA.INNODB_METRICS "
+            "WHERE name ='os_log_bytes_written';"
+        )
         stats = result.fetchone()
     except MySQLdb.OperationalError:
         stats = {'COUNT': 0}
     return stats
 
+
 def fetch_mariadb_lock(conn):
     # This feature is only available for mariaDB with plugin METADATA_LOCK_INFO installed
     try:
-        result = mysql_query(conn, "SELECT count(1) as `nb_lock` FROM INFORMATION_SCHEMA.PROCESSLIST P, INFORMATION_SCHEMA.METADATA_LOCK_INFO M WHERE LOCATE(lcase(M.LOCK_TYPE), lcase(P.STATE))>0;")
+        result = mysql_query(
+            conn,
+            "SELECT count(1) as `nb_lock` "
+            "FROM INFORMATION_SCHEMA.PROCESSLIST P, INFORMATION_SCHEMA.METADATA_LOCK_INFO M "
+            "WHERE LOCATE(lcase(M.LOCK_TYPE), lcase(P.STATE))>0;"
+        )
         stats = result.fetchone()
     except MySQLdb.OperationalError:
         stats = {'nb_lock': 0}
     return stats
+
 
 def fetch_mysql_process_states(conn):
     global MYSQL_PROCESS_STATES
@@ -435,12 +460,15 @@ def fetch_mysql_process_states(conn):
     states = MYSQL_PROCESS_STATES.copy()
     for row in result.fetchall():
         state = row['State']
-        if state == '' or state == None: state = 'none'
+        if state == '' or state is None:
+            state = 'none'
         state = re.sub(r'^(Table lock|Waiting for .*lock)$', "Locked", state)
         state = state.lower().replace(" ", "_")
-        if state not in states: state = 'other'
+        if state not in states:
+            state = 'other'
         states[state] += 1
     return states
+
 
 def fetch_mysql_variables(conn):
     global MYSQL_VARS
@@ -457,6 +485,7 @@ def fetch_mysql_variables(conn):
                 variables[row['Variable_name']] = row['Value']
 
     return variables
+
 
 def fetch_mysql_response_times(conn):
     response_times = {}
@@ -475,7 +504,7 @@ def fetch_mysql_response_times(conn):
 
         # fill in missing rows with zeros
         if not row:
-            row = { 'count': 0, 'total': 0 }
+            row = {'count': 0, 'total': 0}
 
         row = {key.lower(): val for key, val in row.items()}
 
@@ -487,6 +516,7 @@ def fetch_mysql_response_times(conn):
 
     return response_times
 
+
 def fetch_innodb_stats(conn):
     global MYSQL_INNODB_STATUS_MATCHES, MYSQL_INNODB_STATUS_VARS
     result = mysql_query(conn, 'SHOW ENGINE INNODB STATUS')
@@ -497,7 +527,8 @@ def fetch_innodb_stats(conn):
     for line in status.split("\n"):
         line = line.strip()
         row  = re.split(r' +', re.sub(r'[,;] ', ' ', line))
-        if line == '': continue
+        if line == '':
+            continue
 
         # ---TRANSACTION 124324402462, not started
         # ---TRANSACTION 124324402468, ACTIVE 0 sec committing
@@ -515,7 +546,8 @@ def fetch_innodb_stats(conn):
                 stats['innodb_lock_structs'] += int(row[0])
         else:
             for match in MYSQL_INNODB_STATUS_MATCHES:
-                if line.find(match) == -1: continue
+                if line.find(match) == -1:
+                    continue
                 for key in MYSQL_INNODB_STATUS_MATCHES[match]:
                     value = MYSQL_INNODB_STATUS_MATCHES[match][key]
                     if type(value) is int:
@@ -527,6 +559,7 @@ def fetch_innodb_stats(conn):
 
     return stats
 
+
 def log_verbose(msg):
     if not MYSQL_CONFIG['Verbose']:
         return
@@ -534,6 +567,7 @@ def log_verbose(msg):
         collectd.info('mysql plugin: %s' % msg)
     else:
         print('mysql plugin: %s' % msg)
+
 
 def dispatch_value(prefix, key, value, type, type_instance=None):
     if not type_instance:
@@ -554,6 +588,7 @@ def dispatch_value(prefix, key, value, type, type_instance=None):
         val.values        = [value]
         val.dispatch()
 
+
 def configure_callback(conf):
     global MYSQL_CONFIG
     for node in conf.children:
@@ -563,13 +598,15 @@ def configure_callback(conf):
     MYSQL_CONFIG['Port']    = int(MYSQL_CONFIG['Port'])
     MYSQL_CONFIG['Verbose'] = bool(MYSQL_CONFIG['Verbose'])
 
+
 def read_callback():
     global MYSQL_STATUS_VARS
     conn = get_mysql_conn()
 
     mysql_status = fetch_mysql_status(conn)
     for key in mysql_status:
-        if mysql_status[key] == '': mysql_status[key] = 0
+        if mysql_status[key] == '':
+            mysql_status[key] = 0
         # collect anything beginning with Com_/Handler_ as these change
         # regularly between  mysql versions and this is easier than a fixed
         # list
@@ -610,15 +647,15 @@ def read_callback():
     innodb_log_bytes_written = fetch_innodb_os_log_bytes_written(conn)
     dispatch_value('innodb', 'os_log_bytes_written', innodb_log_bytes_written['COUNT'], 'counter')
 
-
     meta_data_lock = fetch_mariadb_lock(conn)
     dispatch_value('innodb', 'lock', meta_data_lock['nb_lock'], 'gauge')
 
-
     innodb_status = fetch_innodb_stats(conn)
     for key in MYSQL_INNODB_STATUS_VARS:
-        if key not in innodb_status: continue
+        if key not in innodb_status:
+            continue
         dispatch_value('innodb', key, innodb_status[key], MYSQL_INNODB_STATUS_VARS[key])
+
 
 if COLLECTD_ENABLED:
     collectd.register_read(read_callback)
