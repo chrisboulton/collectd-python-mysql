@@ -475,7 +475,7 @@ def fetch_mysql_response_times(conn):
 
         # fill in missing rows with zeros
         if not row:
-	        row = { 'count': 0, 'total': 0 }
+            row = { 'count': 0, 'total': 0 }
 
         row = {key.lower(): val for key, val in row.items()}
 
@@ -548,11 +548,11 @@ def dispatch_value(prefix, key, value, type, type_instance=None):
         value = float(value)
 
     if COLLECTD_ENABLED:
-	    val               = collectd.Values(plugin='mysql', plugin_instance=prefix)
-	    val.type          = type
-	    val.type_instance = type_instance
-	    val.values        = [value]
-	    val.dispatch()
+        val               = collectd.Values(plugin='mysql', plugin_instance=prefix)
+        val.type          = type
+        val.type_instance = type_instance
+        val.values        = [value]
+        val.dispatch()
 
 def configure_callback(conf):
     global MYSQL_CONFIG
@@ -602,7 +602,7 @@ def read_callback():
     for key in response_times:
         dispatch_value('response_time_total', str(key), response_times[key]['total'], 'counter')
         dispatch_value('response_time_count', str(key), response_times[key]['count'], 'counter')
-	
+
     mysql_db_size = fetch_mysql_db_size(conn)
     for key in mysql_db_size:
         dispatch_value('db_size', key, mysql_db_size[key], 'gauge')
