@@ -37,12 +37,12 @@ except ImportError:
     COLLECTD_ENABLED = False
 
 MYSQL_CONFIG = {
-    'Host':           'localhost',
-    'Port':           3306,
-    'User':           'root',
-    'Password':       '',
+    'Host': 'localhost',
+    'Port': 3306,
+    'User': 'root',
+    'Password': '',
     'HeartbeatTable': '',
-    'Verbose':        False,
+    'Verbose': False,
 }
 
 MYSQL_STATUS_VARS = {
