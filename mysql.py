@@ -17,7 +17,7 @@
 #   Verbose true (optional, to enable debugging)
 #  </Module>
 #
-# Requires "MySQLdb" for Python
+# Requires "pymysql" for Python
 #
 # Author: Chris Boulton <chris@chrisboulton.com>
 # License: MIT (http://www.opensource.org/licenses/mit-license.php)
@@ -26,7 +26,7 @@
 import sys
 import re
 
-import MySQLdb
+import pymysql
 
 COLLECTD_ENABLED = True
 try:
@@ -333,7 +333,7 @@ MYSQL_INNODB_STATUS_MATCHES = {
 
 
 def get_mysql_conn():
-    return MySQLdb.connect(
+    return pymysql.connect(
         host=MYSQL_CONFIG['Host'],
         port=MYSQL_CONFIG['Port'],
         user=MYSQL_CONFIG['User'],
@@ -342,7 +342,7 @@ def get_mysql_conn():
 
 
 def mysql_query(conn, query):
-    cur = conn.cursor(MySQLdb.cursors.DictCursor)
+    cur = conn.cursor(pymysql.cursors.DictCursor)
     cur.execute(query)
     return cur
 
@@ -369,7 +369,7 @@ def fetch_mysql_status(conn):
 def fetch_mysql_master_stats(conn):
     try:
         result = mysql_query(conn, 'SHOW BINARY LOGS')
-    except MySQLdb.OperationalError:
+    except pymysql.OperationalError:
         return {}
 
     stats = {
@@ -434,7 +434,7 @@ def fetch_innodb_os_log_bytes_written(conn):
             "WHERE name ='os_log_bytes_written';"
         )
         stats = result.fetchone()
-    except MySQLdb.OperationalError:
+    except pymysql.OperationalError:
         stats = {'COUNT': 0}
     return stats
 
@@ -449,7 +449,7 @@ def fetch_mariadb_lock(conn):
             "WHERE LOCATE(lcase(M.LOCK_TYPE), lcase(P.STATE))>0;"
         )
         stats = result.fetchone()
-    except MySQLdb.OperationalError:
+    except pymysql.OperationalError:
         stats = {'nb_lock': 0}
     return stats
 
@@ -496,7 +496,7 @@ def fetch_mysql_response_times(conn):
             WHERE `time` != 'TOO LONG'
             ORDER BY `time`
         """)
-    except MySQLdb.OperationalError:
+    except pymysql.OperationalError:
         return {}
 
     for i in range(1, 14):
@@ -559,6 +559,13 @@ def fetch_innodb_stats(conn):
 
     return stats
 
+def get_mysql_version(conn):
+    try:
+        result = mysql_query(conn, "SELECT VERSION()")
+        mysql_version = result.fetchone()
+    except pymysql.OperationalError:
+        return {}
+    return mysql_version['VERSION()']
 
 def log_verbose(msg):
     if not MYSQL_CONFIG['Verbose']:
@@ -635,11 +642,17 @@ def read_callback():
     for key in slave_status:
         dispatch_value('slave', key, slave_status[key], 'gauge')
 
-    response_times = fetch_mysql_response_times(conn)
-    for key in response_times:
-        dispatch_value('response_time_total', str(key), response_times[key]['total'], 'counter')
-        dispatch_value('response_time_count', str(key), response_times[key]['count'], 'counter')
-
+    # This is only available in Percona Server and some MySQL versions but not in MariaDB
+    # https://www.percona.com/blog/2010/07/11/query-response-time-histogram-new-feature-in-percona-server/
+    version = get_mysql_version(conn)
+    if version.startswith('10.'):
+        pass
+    else:
+        response_times = fetch_mysql_response_times(conn)
+        for key in response_times:
+            dispatch_value('response_time_total', str(key), response_times[key]['total'], 'counter')
+            dispatch_value('response_time_count', str(key), response_times[key]['count'], 'counter')
+	
     mysql_db_size = fetch_mysql_db_size(conn)
     for key in mysql_db_size:
         dispatch_value('db_size', key, mysql_db_size[key], 'gauge')

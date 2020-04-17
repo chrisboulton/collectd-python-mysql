@@ -6,7 +6,7 @@ Pulls most of the same metrics as the Percona Monitoring Plugins for Cacti. Coll
 
 Most MySQL monitoring plugins fetch a lot of information by parsing the output of `SHOW ENGINE INNODB STATUS`. This plugin prefers InnoDB statistics from `SHOW GLOBAL STATUS`. Percona Server and MariaDB provide most of these InnoDB metrics on `SHOW GLOBAL STATUS`.
 
-Requires the Python MySQLdb package. (`python-mysqldb` on Debian)
+Requires the Python `pymysql` package.
 
 ## Installation
 1. Place mysql.py in your CollectD python plugins directory
@@ -187,6 +187,7 @@ Collected from `SHOW VARIABLES`:
     variables.thread_cache_size
     variables.thread_concurrency
     variables.tmp_table_size
+    variables.read_only
 
 ### MySQL Processes
 
