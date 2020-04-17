@@ -476,12 +476,6 @@ def fetch_mysql_variables(conn):
     variables = {}
     for row in result.fetchall():
         if row['Variable_name'] in MYSQL_VARS:
-            if row['Variable_name'] == 'read_only':
-                if row['Value'] == 'OFF':
-                    variables[row['Variable_name']] = 0
-                else:
-                    variables[row['Variable_name']] = 1
-            else:
                 variables[row['Variable_name']] = row['Value']
 
     return variables
@@ -628,6 +622,11 @@ def read_callback():
 
     mysql_variables = fetch_mysql_variables(conn)
     for key in mysql_variables:
+        if mysql_variables[key] == 'ON':
+            mysql_variables[key] = 1
+        elif mysql_variables[key] == 'OFF':
+            mysql_variables[key] = 0
+
         dispatch_value('variables', key, mysql_variables[key], 'gauge')
 
     mysql_master_status = fetch_mysql_master_stats(conn)
