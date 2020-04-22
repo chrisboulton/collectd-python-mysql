@@ -335,6 +335,13 @@ From `SHOW SLAVE STATUS`:
     slave.slave_stopped - 1 when the slave is stopped, 0 when it's running
     slave.slave_running - 1 when the slave is running, 0 when it's stopped
 
+### Current connections for users
+
+This is using performance_schema. If performance_schema is not enabled, it won't work.
+
+    connection_per_user.current_connections_root
+    connection_per_user.current_connections_repl
+
 ### Query Response Times
 
 For versions of MySQL with support for it and where enabled, `INFORMATION_SCHEMA.QUERY_RESPONSE_TIME` will be queried for metrics to generate a histogram of query response times.

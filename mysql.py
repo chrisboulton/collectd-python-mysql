@@ -1,27 +1,28 @@
-#!/usr/bin/env python
-# CollectD MySQL plugin, designed for MySQL 5.5+ (specifically Percona Server)
-#
-# Pulls most of the same metrics as the Percona Monitoring Plugins for Cacti,
-# however is designed to be used on newer versions of MySQL and as such drops
-# all of the legacy compatibility, and favors metrics from SHOW GLOBAL STATUS
-# as opposed to SHOW ENGINE INNODB STATUS where possible.
-#
-# Configuration:
-#  Import mysql
-#  <Module mysql>
-#  	Host localhost
-#  	Port 3306 (optional)
-#  	User root
-#  	Password xxxx
-#  	HeartbeatTable percona.heartbeat (optional, if using pt-heartbeat)
-#   Verbose true (optional, to enable debugging)
-#  </Module>
-#
-# Requires "pymysql" for Python
-#
-# Author: Chris Boulton <chris@chrisboulton.com>
-# License: MIT (http://www.opensource.org/licenses/mit-license.php)
-#
+#!/usr/bin/env python3
+"""
+CollectD MySQL plugin, designed for MySQL 5.5+ (specifically Percona Server)
+
+Pulls most of the same metrics as the Percona Monitoring Plugins for Cacti,
+however is designed to be used on newer versions of MySQL and as such drops
+all of the legacy compatibility, and favors metrics from SHOW GLOBAL STATUS
+as opposed to SHOW ENGINE INNODB STATUS where possible.
+
+Configuration:
+Import mysql
+ <Module mysql>
+  Host localhost
+  Port 3306 (optional)
+  User root
+  Password xxxx
+  HeartbeatTable percona.heartbeat (optional, if using pt-heartbeat)
+  Verbose true (optional, to enable debugging)
+ </Module>
+
+Requires "pymysql" for Python
+
+Author: Chris Boulton <chris@chrisboulton.com>
+License: MIT (http://www.opensource.org/licenses/mit-license.php)
+"""
 
 import sys
 import re
@@ -305,7 +306,7 @@ MYSQL_INNODB_STATUS_MATCHES = {
     },
     # File system         657820264 	(812272 + 657007992)
     'File system    ': {
-         'file_system_memory': 2,
+        'file_system_memory': 2,
     },
     # Lock system         143820296 	(143819576 + 720)
     'Lock system    ': {
@@ -333,6 +334,7 @@ MYSQL_INNODB_STATUS_MATCHES = {
 
 
 def get_mysql_conn():
+    """ Get connection parameters """
     return pymysql.connect(
         host=MYSQL_CONFIG['Host'],
         port=MYSQL_CONFIG['Port'],
@@ -342,12 +344,14 @@ def get_mysql_conn():
 
 
 def mysql_query(conn, query):
+    """ Function to run MySQL queries """
     cur = conn.cursor(pymysql.cursors.DictCursor)
     cur.execute(query)
     return cur
 
 
 def fetch_mysql_status(conn):
+    """ Fetch global status variables """
     result = mysql_query(conn, 'SHOW GLOBAL STATUS')
     status = {}
     for row in result.fetchall():
@@ -367,6 +371,7 @@ def fetch_mysql_status(conn):
 
 
 def fetch_mysql_master_stats(conn):
+    """ Fetch master information """
     try:
         result = mysql_query(conn, 'SHOW BINARY LOGS')
     except pymysql.OperationalError:
@@ -384,6 +389,7 @@ def fetch_mysql_master_stats(conn):
 
 
 def fetch_mysql_slave_stats(conn):
+    """ Fetch slave status """
     result    = mysql_query(conn, 'SHOW SLAVE STATUS')
     slave_row = result.fetchone()
     if slave_row is None:
@@ -411,6 +417,7 @@ def fetch_mysql_slave_stats(conn):
 
 
 def fetch_mysql_db_size(conn):
+    """ Fetch database size """
     result = mysql_query(
         conn,
         "SELECT table_schema 'db_name', Round(Sum(data_length + index_length) / 1024 / 1024, 0) 'db_size_mb' "
@@ -426,6 +433,7 @@ def fetch_mysql_db_size(conn):
 
 
 def fetch_innodb_os_log_bytes_written(conn):
+    """ Fetch innodb metric os_log_bytes_written """
     # This feature is only available for mariaDB >= 10.x and MySQL > 5.5.
     try:
         result = mysql_query(
@@ -439,7 +447,8 @@ def fetch_innodb_os_log_bytes_written(conn):
     return stats
 
 
-def fetch_mariadb_lock(conn):
+def fetch_mysql_lock(conn):
+    """ Fetch MySQL lock """
     # This feature is only available for mariaDB with plugin METADATA_LOCK_INFO installed
     try:
         result = mysql_query(
@@ -455,6 +464,7 @@ def fetch_mariadb_lock(conn):
 
 
 def fetch_mysql_process_states(conn):
+    """ Fetch process states """
     global MYSQL_PROCESS_STATES
     result = mysql_query(conn, 'SHOW PROCESSLIST')
     states = MYSQL_PROCESS_STATES.copy()
@@ -471,17 +481,46 @@ def fetch_mysql_process_states(conn):
 
 
 def fetch_mysql_variables(conn):
+    """ Fetch defined MySQL variables """
     global MYSQL_VARS
     result = mysql_query(conn, 'SHOW GLOBAL VARIABLES')
     variables = {}
     for row in result.fetchall():
         if row['Variable_name'] in MYSQL_VARS:
-                variables[row['Variable_name']] = row['Value']
+            variables[row['Variable_name']] = row['Value']
 
     return variables
 
 
+def is_ps_enabled(conn):
+    """ Check is performance_schema is enabled """
+    result = mysql_query(conn, 'SHOW GLOBAL VARIABLES LIKE "performance_schema"')
+    row = result.fetchone()
+    return bool(row['Value'] == 'ON')
+
+
+def fetch_connections_per_account(conn):
+    """ Fetch number of connections per account """
+    queries = {}
+    try:
+        result = mysql_query(conn, """
+			SELECT user, sum(current_connections) as `current_connections`
+			FROM performance_schema.accounts
+			WHERE user is not null
+			GROUP BY user;
+			""")
+        for row in result.fetchall():
+            user = str(row['user'])
+            queries["current_connections_"+user] = row['current_connections']
+
+    except pymysql.OperationalError:
+        return {}
+
+    return queries
+
+
 def fetch_mysql_response_times(conn):
+    """ Fetch mysql response time from percona plugin """
     response_times = {}
     try:
         result = mysql_query(conn, """
@@ -512,6 +551,7 @@ def fetch_mysql_response_times(conn):
 
 
 def fetch_innodb_stats(conn):
+    """ Fetch innodb statistics """
     global MYSQL_INNODB_STATUS_MATCHES, MYSQL_INNODB_STATUS_VARS
     result = mysql_query(conn, 'SHOW ENGINE INNODB STATUS')
     row    = result.fetchone()
@@ -544,7 +584,7 @@ def fetch_innodb_stats(conn):
                     continue
                 for key in MYSQL_INNODB_STATUS_MATCHES[match]:
                     value = MYSQL_INNODB_STATUS_MATCHES[match][key]
-                    if type(value) is int:
+                    if isinstance(value, int):
                         if value < len(row) and row[value].isdigit():
                             stats[key] = int(row[value])
                     else:
@@ -554,6 +594,7 @@ def fetch_innodb_stats(conn):
     return stats
 
 def get_mysql_version(conn):
+    """ Get MySQL version """
     try:
         result = mysql_query(conn, "SELECT VERSION()")
         mysql_version = result.fetchone()
@@ -561,7 +602,9 @@ def get_mysql_version(conn):
         return {}
     return mysql_version['VERSION()']
 
+
 def log_verbose(msg):
+    """ To enable verbose mode """
     if not MYSQL_CONFIG['Verbose']:
         return
     if COLLECTD_ENABLED:
@@ -571,6 +614,7 @@ def log_verbose(msg):
 
 
 def dispatch_value(prefix, key, value, type, type_instance=None):
+    """ Dispatch metrics """
     if not type_instance:
         type_instance = key
 
@@ -591,6 +635,7 @@ def dispatch_value(prefix, key, value, type, type_instance=None):
 
 
 def configure_callback(conf):
+    """ Config callback """
     global MYSQL_CONFIG
     for node in conf.children:
         if node.key in MYSQL_CONFIG:
@@ -601,6 +646,7 @@ def configure_callback(conf):
 
 
 def read_callback():
+    """ Everything is happenning here """
     global MYSQL_STATUS_VARS
     conn = get_mysql_conn()
 
@@ -641,6 +687,11 @@ def read_callback():
     for key in slave_status:
         dispatch_value('slave', key, slave_status[key], 'gauge')
 
+    if is_ps_enabled(conn) is True:
+        user_connections = fetch_connections_per_account(conn)
+        for key in user_connections:
+            dispatch_value('connection_per_user', key, user_connections[key], 'gauge')
+
     # This is only available in Percona Server and some MySQL versions but not in MariaDB
     # https://www.percona.com/blog/2010/07/11/query-response-time-histogram-new-feature-in-percona-server/
     version = get_mysql_version(conn)
@@ -651,7 +702,7 @@ def read_callback():
         for key in response_times:
             dispatch_value('response_time_total', str(key), response_times[key]['total'], 'counter')
             dispatch_value('response_time_count', str(key), response_times[key]['count'], 'counter')
-	
+
     mysql_db_size = fetch_mysql_db_size(conn)
     for key in mysql_db_size:
         dispatch_value('db_size', key, mysql_db_size[key], 'gauge')
@@ -659,7 +710,7 @@ def read_callback():
     innodb_log_bytes_written = fetch_innodb_os_log_bytes_written(conn)
     dispatch_value('innodb', 'os_log_bytes_written', innodb_log_bytes_written['COUNT'], 'counter')
 
-    meta_data_lock = fetch_mariadb_lock(conn)
+    meta_data_lock = fetch_mysql_lock(conn)
     dispatch_value('innodb', 'lock', meta_data_lock['nb_lock'], 'gauge')
 
     innodb_status = fetch_innodb_stats(conn)
@@ -674,8 +725,8 @@ if COLLECTD_ENABLED:
     collectd.register_config(configure_callback)
 
 if __name__ == "__main__" and not COLLECTD_ENABLED:
-    print("Running in test mode, invoke with")
-    print(sys.argv[0] + " Host Port User Password ")
+    print('Running in test mode, invoke with')
+    print(sys.argv[0] + ' Host Port User Password ')
     MYSQL_CONFIG['Host'] = sys.argv[1]
     MYSQL_CONFIG['Port'] = int(sys.argv[2])
     MYSQL_CONFIG['User'] = sys.argv[3]
