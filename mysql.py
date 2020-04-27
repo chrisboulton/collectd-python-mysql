@@ -390,7 +390,7 @@ def fetch_mysql_master_stats(conn):
 
 def fetch_mysql_slave_stats(conn):
     """ Fetch slave status """
-    result    = mysql_query(conn, 'SHOW SLAVE STATUS')
+    result = mysql_query(conn, 'SHOW SLAVE STATUS')
     slave_row = result.fetchone()
     if slave_row is None:
         return {}
@@ -407,7 +407,7 @@ def fetch_mysql_slave_stats(conn):
             WHERE server_id = %s
         """ % (MYSQL_CONFIG['HeartbeatTable'], slave_row['Master_Server_Id'])
         result = mysql_query(conn, query)
-        row    = result.fetchone()
+        row = result.fetchone()
         if 'delay' in row and row['delay'] is not None:
             status['slave_lag'] = row['delay']
 
@@ -504,11 +504,11 @@ def fetch_connections_per_account(conn):
     queries = {}
     try:
         result = mysql_query(conn, """
-			SELECT user, sum(current_connections) as `current_connections`
-			FROM performance_schema.accounts
-			WHERE user is not null
-			GROUP BY user;
-			""")
+            SELECT user, sum(current_connections) as `current_connections`
+            FROM performance_schema.accounts
+            WHERE user is not null
+            GROUP BY user;
+        """)
         for row in result.fetchall():
             user = str(row['user'])
             queries["current_connections_"+user] = row['current_connections']
@@ -554,13 +554,13 @@ def fetch_innodb_stats(conn):
     """ Fetch innodb statistics """
     global MYSQL_INNODB_STATUS_MATCHES, MYSQL_INNODB_STATUS_VARS
     result = mysql_query(conn, 'SHOW ENGINE INNODB STATUS')
-    row    = result.fetchone()
+    row = result.fetchone()
     status = row['Status']
-    stats  = dict.fromkeys(MYSQL_INNODB_STATUS_VARS.keys(), 0)
+    stats = dict.fromkeys(MYSQL_INNODB_STATUS_VARS.keys(), 0)
 
     for line in status.split("\n"):
         line = line.strip()
-        row  = re.split(r' +', re.sub(r'[,;] ', ' ', line))
+        row = re.split(r' +', re.sub(r'[,;] ', ' ', line))
         if line == '':
             continue
 
@@ -592,6 +592,7 @@ def fetch_innodb_stats(conn):
                 break
 
     return stats
+
 
 def get_mysql_version(conn):
     """ Get MySQL version """
@@ -627,10 +628,10 @@ def dispatch_value(prefix, key, value, type, type_instance=None):
         value = float(value)
 
     if COLLECTD_ENABLED:
-        val               = collectd.Values(plugin='mysql', plugin_instance=prefix)
-        val.type          = type
+        val = collectd.Values(plugin='mysql', plugin_instance=prefix)
+        val.type = type
         val.type_instance = type_instance
-        val.values        = [value]
+        val.values = [value]
         val.dispatch()
 
 
@@ -641,7 +642,7 @@ def configure_callback(conf):
         if node.key in MYSQL_CONFIG:
             MYSQL_CONFIG[node.key] = node.values[0]
 
-    MYSQL_CONFIG['Port']    = int(MYSQL_CONFIG['Port'])
+    MYSQL_CONFIG['Port'] = int(MYSQL_CONFIG['Port'])
     MYSQL_CONFIG['Verbose'] = bool(MYSQL_CONFIG['Verbose'])
 
 
