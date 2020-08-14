@@ -504,14 +504,14 @@ def fetch_connections_per_account(conn):
     queries = {}
     try:
         result = mysql_query(conn, """
-            SELECT user, sum(current_connections) as `current_connections`
+            SELECT user, sum(current_connections) as `cur_conn`
             FROM performance_schema.accounts
             WHERE user is not null
             GROUP BY user;
         """)
         for row in result.fetchall():
             user = str(row['user'])
-            queries["current_connections_"+user] = row['current_connections']
+            queries[user] = row['cur_conn']
 
     except pymysql.OperationalError:
         return {}
@@ -691,7 +691,7 @@ def read_callback():
     if is_ps_enabled(conn) is True:
         user_connections = fetch_connections_per_account(conn)
         for key in user_connections:
-            dispatch_value('connection_per_user', key, user_connections[key], 'gauge')
+            dispatch_value('user_connection', key, user_connections[key], 'gauge')
 
     # This is only available in Percona Server and some MySQL versions but not in MariaDB
     # https://www.percona.com/blog/2010/07/11/query-response-time-histogram-new-feature-in-percona-server/

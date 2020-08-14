@@ -339,8 +339,8 @@ From `SHOW SLAVE STATUS`:
 
 This is using performance_schema. If performance_schema is not enabled, it won't work.
 
-    connection_per_user.current_connections_root
-    connection_per_user.current_connections_repl
+    user_connection.root
+    user_connection.user-repl
 
 ### Query Response Times
 
