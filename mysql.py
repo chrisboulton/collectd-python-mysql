@@ -349,7 +349,7 @@ def fetch_mysql_status(conn):
 		status[row['Variable_name']] = row['Value']
 
 	# calculate the number of unpurged txns from existing variables
-	if 'Innodb_max_trx_id' in status:
+	if 'Innodb_max_trx_id' in status and 'Innodb_purge_trx_id' in status:
 		status['Innodb_unpurged_txns'] = int(status['Innodb_max_trx_id']) - int(status['Innodb_purge_trx_id'])
 
 	if 'Innodb_lsn_last_checkpoint' in status:
