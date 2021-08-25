@@ -6,7 +6,7 @@ Pulls most of the same metrics as the Percona Monitoring Plugins for Cacti. Coll
 
 Most MySQL monitoring plugins fetch a lot of information by parsing the output of `SHOW ENGINE INNODB STATUS`. This plugin prefers InnoDB statistics from `SHOW GLOBAL STATUS`. Percona Server and MariaDB provide most of these InnoDB metrics on `SHOW GLOBAL STATUS`.
 
-Requires the Python MySQLdb package. (`python-mysqldb` on Debian)
+Requires the Python `pymysql` package.
 
 ## Installation
 1. Place mysql.py in your CollectD python plugins directory
@@ -187,6 +187,7 @@ Collected from `SHOW VARIABLES`:
     variables.thread_cache_size
     variables.thread_concurrency
     variables.tmp_table_size
+    variables.read_only
 
 ### MySQL Processes
 
@@ -296,6 +297,30 @@ TBD:
 	hash_index_cells_used
 	additional_pool_alloc
 
+### InnoDB metrics from information_schema
+
+**Warning: This is only available in MariaDB >= 10.x and MySQL >= 5.6.**
+
+Collected by parsing the output of `SELECT COUNT from INFORMATION_SCHEMA.INNODB_METRICS where name ='os_log_bytes_written';`:
+
+    mysql plugin: Sending value: innodb/os_log_bytes_written=263167952896
+
+To get the metadata lock information:
+
+    mysql plugin: Sending value: innodb/lock=0
+
+- MariaDB: https://mariadb.com/kb/en/metadata-lock-info-plugin/
+- MySQL: https://dev.mysql.com/doc/refman/5.7/en/metadata-locks-table.html
+
+
+### Database size
+
+Collected by parsing the output of `SELECT table_schema 'db_name',  Round(Sum(data_length + index_length) / 1024 / 1024, 0) 'db_size_mb'  FROM   information_schema.tables WHERE table_schema not in ('mysql', 'information_schema', 'performance_schema', 'heartbeat') GROUP  BY table_schema;`:
+
+    db_size/databasename=14907
+
+The Database size is in MB.
+
 
 ### Master/Slave Status
    
@@ -309,6 +334,13 @@ From `SHOW SLAVE STATUS`:
     slave.slave_lag - Value of Seconds_Behind_Master, unless using HeartbeatTable is supplied, in which case slave lag will be determined from the pt-heartbeat table based on the server's master server ID.
     slave.slave_stopped - 1 when the slave is stopped, 0 when it's running
     slave.slave_running - 1 when the slave is running, 0 when it's stopped
+
+### Current connections for users
+
+This is using performance_schema. If performance_schema is not enabled, it won't work.
+
+    user_connection.root
+    user_connection.user-repl
 
 ### Query Response Times
 
